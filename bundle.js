@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ctx.fillRect(0, 0, 1000, 1000);
   const game = new __WEBPACK_IMPORTED_MODULE_0__game_js__["a" /* default */](ctx, canvas);
   game.start();
-  game.animate();
+  // game.animate();
 });
 
 
@@ -111,8 +111,9 @@ class Game {
   onMouseMove(e) {
     let mousePos = this.getMousePos(this.canv, e);
     let mouseAngle = this.radiansToDegrees(Math.atan2((this.player.y) - mousePos.y, mousePos.x - (this.player.x)));
+
     if (mouseAngle < 0) {
-      mouseAngle = 180 + (180 + mouseAngle);
+        mouseAngle = 180 + (180 + mouseangle);
     }
 
     let lbound = 8;
@@ -124,11 +125,10 @@ class Game {
       }
     } else {
       if (mouseAngle < lbound || mouseAngle >= 270) {
-        mouseANgle = lbound;
+        mouseAngle = lbound;
       }
     }
     this.player.angle = mouseAngle;
-    
   }
 
   start() {
@@ -150,24 +150,30 @@ class Game {
     return angle * (180 / Math.PI);
   }
 
+  degreesToRadians(angle) {
+    return angle * (Math.PI / 180);
+  }
+
   getMousePos(canv, e) {
     let rect = canv.getBoundingClientRect();
     return {
       x: Math.round((e.clientX - rect.left) / (rect.right - rect.left) * canv.width),
-      y: Math.round((e.clientY - rect.top) / (rect.bottom - rect.top) * canv.width)
+      y: Math.round((e.clientY - rect.top) / (rect.bottom - rect.top) * canv.height)
     };
   }
 
   renderPlayerAngle(ctx) {
-
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "white";
     ctx.beginPath();
     ctx.moveTo(this.player.x, this.player.y);
-    ctx.lineTo(this.player.x * Math.cos(this.player.angle * (Math.PI / 180)),
-    this.player.y * Math.sin(this.player.angle * (Math.PI / 180)));
+    ctx.lineTo(this.player.x + 1.5 * 100 * Math.cos(this.degreesToRadians(this.player.angle)),
+                this.player.y - 1.5 * 100 * Math.sin(this.degreesToRadians(this.player.angle)));
     ctx.stroke();
   }
 
   animate() {
+
   this.renderBubbles();
   this.player.draw(this.ctx);
   this.renderPlayerAngle(this.ctx);
