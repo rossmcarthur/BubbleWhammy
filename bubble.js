@@ -14,10 +14,11 @@ class Bubble {
   }
 
   draw(ctx) {
-    
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.canX, this.canY, 17, 30, 2*Math.PI, true);
+    ctx.fill();
   }
-
-
 
 }
 
