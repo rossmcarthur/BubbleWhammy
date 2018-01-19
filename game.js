@@ -13,9 +13,9 @@ class Game {
     this.canv = canv;
     this.board = board;
     this.player = new Player('Ross');
-    this.bubble = new Bubble(8, 15, 266.4, 680, colors[Math.floor(Math.random()*colors.length)]);
     this.handleMove = this.handleMove.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.state = 'ready';
   }
 
   handleMove(e) {
@@ -51,7 +51,7 @@ class Game {
   renderBubbles() {
     this.board.grid.forEach(row => {
       row.forEach(bubble => {
-        if (bubble.canX) {
+        if (bubble instanceof Array === false) {
           bubble.draw(this.ctx);
         }
       });
@@ -90,35 +90,26 @@ class Game {
     this.ctx.fillRect(0, 0, 1000, 1000);
     this.renderBubbles();
     this.player.draw(this.ctx);
-    this.bubble.draw(this.ctx);
+    this.player.bubble.draw(this.ctx);
     this.renderPlayerAngle(this.ctx);
     requestAnimationFrame(this.animate.bind(this));
   }
 
   handleClick(e) {
+    this.state = "shooting";
+    this.player.bubble.loaded = true;
     this.shootBubble(40);
   }
 
   shootBubble(delta) {
-    let bubble = this.bubble;
-    if (bubble.canY === 680) {
+    let bubble = this.player.bubble;
+    if (bubble.pos.yPos === 632.6999999999999) {
       bubble.angle = this.player.angle;
     }
-    bubble.canX += delta * Math.cos(this.degreesToRadians(bubble.angle));
-    bubble.canY += delta * -1 * Math.sin(this.degreesToRadians(bubble.angle));
-    if (bubble.canX >= 500) {
-      bubble.angle = Math.abs(180 - bubble.angle);
-    } else if (bubble.canX <= 50) {
-      bubble.angle = 180 - bubble.angle;
-      bubble.x = 500 - 33.3;
-    }
-
   }
 
-
-
-
 }
+
 
 
 export default Game;

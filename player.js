@@ -7,10 +7,9 @@ class Player {
     this.name = name;
     this.score = 0;
     this.x = 266.4;
-    this.y = 710;
+    this.y = 675;
     this.angle = 0;
-    // this.bubble = new Bubble(0, 0, this.x, this.y - 30, colors[Math.floor(Math.random()*colors.length)]);
-    this.nextBubble = new Bubble(0, 0, 0, 700, colors[Math.floor(Math.random()*colors.length)]);
+    this.bubble = {};
   }
 
   draw(ctx) {

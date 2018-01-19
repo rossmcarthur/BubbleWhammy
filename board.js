@@ -8,11 +8,11 @@ class Board {
 
   createRow() {
     const row = [];
-    let i = 0;
-    for(let canX = 33.3; i < 15; canX+=33.3) {
+    for(let i = 0; i < 15; i++) {
       let color = colors[Math.floor(Math.random()*colors.length)];
-      row.push(new Bubble(i, 0, canX, 33.3, color));
-      i++;
+      let bubble = new Bubble(i, 0, color);
+      bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+      row.push(bubble);
     }
     return row;
   }
@@ -21,12 +21,7 @@ class Board {
     this.grid.forEach(row => {
       row.forEach(bubble => {
           bubble.y += 1;
-          bubble.canY += 33.3;
-          if (bubble.y % 2 !== 0) {
-            bubble.canX += 16.65;
-          } else if (bubble.y !== 0) {
-            bubble.canX -= 16.65;
-          }
+          bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
       });
     });
     this.removeRow();
@@ -38,13 +33,13 @@ class Board {
     return this.grid.pop();
     }
   }
-  
+
   populate() {
     this.grid.unshift(this.createRow());
     for(let i = 0; i < 6; i++) {
       this.shiftRow();
     }
-    for(let i = 0; i < 8; i++) {
+    for(let l = 0; l < 12; l++) {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
         emptyRow.push([]);

@@ -106,9 +106,9 @@ class Game {
     this.canv = canv;
     this.board = board;
     this.player = new __WEBPACK_IMPORTED_MODULE_1__player__["a" /* default */]('Ross');
-    this.bubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](8, 15, 266.4, 680, colors[Math.floor(Math.random()*colors.length)]);
     this.handleMove = this.handleMove.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.state = 'ready';
   }
 
   handleMove(e) {
@@ -144,7 +144,7 @@ class Game {
   renderBubbles() {
     this.board.grid.forEach(row => {
       row.forEach(bubble => {
-        if (bubble.canX) {
+        if (bubble instanceof Array === false) {
           bubble.draw(this.ctx);
         }
       });
@@ -183,35 +183,26 @@ class Game {
     this.ctx.fillRect(0, 0, 1000, 1000);
     this.renderBubbles();
     this.player.draw(this.ctx);
-    this.bubble.draw(this.ctx);
+    this.player.bubble.draw(this.ctx);
     this.renderPlayerAngle(this.ctx);
     requestAnimationFrame(this.animate.bind(this));
   }
 
   handleClick(e) {
+    this.state = "shooting";
+    this.player.bubble.loaded = true;
     this.shootBubble(40);
   }
 
   shootBubble(delta) {
-    let bubble = this.bubble;
-    if (bubble.canY === 680) {
+    let bubble = this.player.bubble;
+    if (bubble.pos.yPos === 632.6999999999999) {
       bubble.angle = this.player.angle;
     }
-    bubble.canX += delta * Math.cos(this.degreesToRadians(bubble.angle));
-    bubble.canY += delta * -1 * Math.sin(this.degreesToRadians(bubble.angle));
-    if (bubble.canX >= 500) {
-      bubble.angle = Math.abs(180 - bubble.angle);
-    } else if (bubble.canX <= 50) {
-      bubble.angle = 180 - bubble.angle;
-      bubble.x = 500 - 33.3;
-    }
-
   }
 
-
-
-
 }
+
 
 
 /* harmony default export */ __webpack_exports__["a"] = (Game);
@@ -233,11 +224,11 @@ class Board {
 
   createRow() {
     const row = [];
-    let i = 0;
-    for(let canX = 33.3; i < 15; canX+=33.3) {
+    for(let i = 0; i < 15; i++) {
       let color = colors[Math.floor(Math.random()*colors.length)];
-      row.push(new __WEBPACK_IMPORTED_MODULE_0__bubble_js__["a" /* default */](i, 0, canX, 33.3, color));
-      i++;
+      let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble_js__["a" /* default */](i, 0, color);
+      bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+      row.push(bubble);
     }
     return row;
   }
@@ -246,12 +237,7 @@ class Board {
     this.grid.forEach(row => {
       row.forEach(bubble => {
           bubble.y += 1;
-          bubble.canY += 33.3;
-          if (bubble.y % 2 !== 0) {
-            bubble.canX += 16.65;
-          } else if (bubble.y !== 0) {
-            bubble.canX -= 16.65;
-          }
+          bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
       });
     });
     this.removeRow();
@@ -263,13 +249,13 @@ class Board {
     return this.grid.pop();
     }
   }
-  
+
   populate() {
     this.grid.unshift(this.createRow());
     for(let i = 0; i < 6; i++) {
       this.shiftRow();
     }
-    for(let i = 0; i < 8; i++) {
+    for(let l = 0; l < 12; l++) {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
         emptyRow.push([]);
@@ -290,34 +276,71 @@ class Board {
 "use strict";
 class Bubble {
 
-  constructor(x, y, canX, canY, color, angle = 0){
+ // canX, canY;
+ // this.canX = canX;
+ // this.canY = canY;
+  constructor(x, y, color, loaded = false, pos = {}, angle = 0) {
     this.x = x;
     this.y = y;
-    this.canX = canX;
-    this.canY = canY;
+    this.pos = pos;
+    this.gridPos = {};
     this.present = true;
     this.color = color;
     this.angle = angle;
+    this.loaded = loaded;
+    this.speed = 10;
     }
 
-  pos() {
-    return [this.x, this.y];
-  }
+    degreesToRadians(angle) {
+      return angle * (Math.PI / 180);
+    }
 
   draw(ctx) {
     ctx.fillStyle = this.color;
     ctx.beginPath();
-    ctx.arc(this.canX, this.canY, 17, 30, 2*Math.PI, true);
+
+    if (this.loaded) {
+      this.pos.xPos += this.speed * Math.cos(this.degreesToRadians(this.angle));
+      this.pos.yPos += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
+      if (this.pos.xPos >= 500) {
+        this.angle = Math.abs(180 - this.angle);
+      } else if (this.pos.xPos <= 50) {
+        this.angle = 180 - this.angle;
+      }
+    }
+    
+    ctx.arc(this.pos.xPos, this.pos.yPos, 17, 30, 2*Math.PI, true);
     ctx.fill();
   }
 
-  getScreenPos(row, col) {
-    let xPos = col * 33.3;
+  getGridPos(xPos, yPos) {
+    let yGrid = Math.floor(yPos / 33.3) - 1;
+    let offset = 0;
+    if (yPos % 66.6 === 0) {
+      offset = 16.65;
+    }
+    let xGrid = Math.floor((xPos - offset) / 33.3) - 1;
+    return { xGrid: xGrid, yGrid: yGrid };
+  }
+
+  getScreenPos(col, row) {
+    let xPos;
+    if (col === 0) {
+      xPos = 33.3;
+    } else {
+        xPos = (col * 33.3) + 33.3;
+    }
     if (row % 2 !== 0) {
       xPos += 16.65;
     }
 
-    let yPos = row * 33.3;
+    let yPos;
+    if (row === 0) {
+      yPos = 33.3;
+    } else {
+        yPos = (row * 33.3) + 33.3;
+    }
+
     return { xPos: xPos, yPos: yPos };
   }
 
@@ -341,10 +364,9 @@ class Player {
     this.name = name;
     this.score = 0;
     this.x = 266.4;
-    this.y = 710;
+    this.y = 675;
     this.angle = 0;
-    // this.bubble = new Bubble(0, 0, this.x, this.y - 30, colors[Math.floor(Math.random()*colors.length)]);
-    this.nextBubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](0, 0, 0, 700, colors[Math.floor(Math.random()*colors.length)]);
+    this.bubble = {};
   }
 
   draw(ctx) {
