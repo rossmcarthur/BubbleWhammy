@@ -78,11 +78,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.getElementById("gameBoard");
   const ctx = canvas.getContext("2d");
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0, 0, 1000, 1000);
   const game = new __WEBPACK_IMPORTED_MODULE_0__game_js__["a" /* default */](ctx, canvas);
   game.start();
-  // game.animate();
 });
 
 
@@ -93,8 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__board__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__player__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__bubble__ = __webpack_require__(3);
 
 
+
+
+const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
 let newBoard = new __WEBPACK_IMPORTED_MODULE_0__board__["a" /* default */]();
 newBoard.populate();
@@ -105,10 +106,12 @@ class Game {
     this.canv = canv;
     this.board = board;
     this.player = new __WEBPACK_IMPORTED_MODULE_1__player__["a" /* default */]('Ross');
-    this.onMouseMove = this.onMouseMove.bind(this);
+    this.bubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](8, 15, 266.4, 680, colors[Math.floor(Math.random()*colors.length)]);
+    this.handleMove = this.handleMove.bind(this);
+    this.handleClick = this.handleClick.bind(this);
   }
 
-  onMouseMove(e) {
+  handleMove(e) {
     let mousePos = this.getMousePos(this.canv, e);
     let mouseAngle = this.radiansToDegrees(Math.atan2((this.player.y) - mousePos.y, mousePos.x - (this.player.x)));
 
@@ -128,11 +131,13 @@ class Game {
         mouseAngle = lbound;
       }
     }
+
     this.player.angle = mouseAngle;
   }
 
   start() {
-    this.canv.addEventListener('mousemove', this.onMouseMove);
+    this.canv.addEventListener('mousemove', this.handleMove);
+    this.canv.addEventListener('mousedown', this.handleClick);
     requestAnimationFrame(this.animate.bind(this));
   }
 
@@ -168,18 +173,44 @@ class Game {
     ctx.beginPath();
     ctx.moveTo(this.player.x, this.player.y);
     ctx.lineTo(this.player.x + 1.5 * 100 * Math.cos(this.degreesToRadians(this.player.angle)),
-                this.player.y - 1.5 * 100 * Math.sin(this.degreesToRadians(this.player.angle)));
+              this.player.y - 1.5 * 100 * Math.sin(this.degreesToRadians(this.player.angle)));
     ctx.stroke();
   }
 
   animate() {
-
-  this.renderBubbles();
-  this.player.draw(this.ctx);
-  this.renderPlayerAngle(this.ctx);
-
-  requestAnimationFrame(this.animate.bind(this));
+    this.ctx.clearRect(0, 0, 550, 700);
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillRect(0, 0, 1000, 1000);
+    this.renderBubbles();
+    this.player.draw(this.ctx);
+    this.bubble.draw(this.ctx);
+    this.renderPlayerAngle(this.ctx);
+    requestAnimationFrame(this.animate.bind(this));
   }
+
+  handleClick(e) {
+    this.shootBubble(40);
+  }
+
+  shootBubble(delta) {
+    let bubble = this.bubble;
+    if (bubble.canY === 680) {
+      bubble.angle = this.player.angle;
+    }
+    bubble.canX += delta * Math.cos(this.degreesToRadians(bubble.angle));
+    bubble.canY += delta * -1 * Math.sin(this.degreesToRadians(bubble.angle));
+    if (bubble.canX >= 500) {
+      bubble.angle = Math.abs(180 - bubble.angle);
+    } else if (bubble.canX <= 50) {
+      bubble.angle = 180 - bubble.angle;
+      bubble.x = 500 - 33.3;
+    }
+
+  }
+
+
+
+
 }
 
 
@@ -259,14 +290,15 @@ class Board {
 "use strict";
 class Bubble {
 
-  constructor(x, y, canX, canY, color){
+  constructor(x, y, canX, canY, color, angle = 0){
     this.x = x;
     this.y = y;
     this.canX = canX;
     this.canY = canY;
     this.present = true;
     this.color = color;
-  }
+    this.angle = angle;
+    }
 
   pos() {
     return [this.x, this.y];
@@ -279,6 +311,16 @@ class Bubble {
     ctx.fill();
   }
 
+  getScreenPos(row, col) {
+    let xPos = col * 33.3;
+    if (row % 2 !== 0) {
+      xPos += 16.65;
+    }
+
+    let yPos = row * 33.3;
+    return { xPos: xPos, yPos: yPos };
+  }
+
 }
 
 /* harmony default export */ __webpack_exports__["a"] = (Bubble);
@@ -289,6 +331,11 @@ class Bubble {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bubble__ = __webpack_require__(3);
+
+
+const colors = ["red", "blue", "green", "yellow", "purple", "white"];
+
 class Player {
   constructor(name) {
     this.name = name;
@@ -296,6 +343,8 @@ class Player {
     this.x = 266.4;
     this.y = 710;
     this.angle = 0;
+    // this.bubble = new Bubble(0, 0, this.x, this.y - 30, colors[Math.floor(Math.random()*colors.length)]);
+    this.nextBubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](0, 0, 0, 700, colors[Math.floor(Math.random()*colors.length)]);
   }
 
   draw(ctx) {

@@ -1,3 +1,7 @@
+import Bubble from './bubble';
+
+const colors = ["red", "blue", "green", "yellow", "purple", "white"];
+
 class Player {
   constructor(name) {
     this.name = name;
@@ -5,6 +9,8 @@ class Player {
     this.x = 266.4;
     this.y = 710;
     this.angle = 0;
+    // this.bubble = new Bubble(0, 0, this.x, this.y - 30, colors[Math.floor(Math.random()*colors.length)]);
+    this.nextBubble = new Bubble(0, 0, 0, 700, colors[Math.floor(Math.random()*colors.length)]);
   }
 
   draw(ctx) {

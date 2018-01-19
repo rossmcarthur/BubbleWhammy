@@ -1,5 +1,8 @@
 import Board from './board';
 import Player from './player';
+import Bubble from './bubble';
+
+const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
 let newBoard = new Board();
 newBoard.populate();
@@ -10,10 +13,12 @@ class Game {
     this.canv = canv;
     this.board = board;
     this.player = new Player('Ross');
-    this.onMouseMove = this.onMouseMove.bind(this);
+    this.bubble = new Bubble(8, 15, 266.4, 680, colors[Math.floor(Math.random()*colors.length)]);
+    this.handleMove = this.handleMove.bind(this);
+    this.handleClick = this.handleClick.bind(this);
   }
 
-  onMouseMove(e) {
+  handleMove(e) {
     let mousePos = this.getMousePos(this.canv, e);
     let mouseAngle = this.radiansToDegrees(Math.atan2((this.player.y) - mousePos.y, mousePos.x - (this.player.x)));
 
@@ -33,11 +38,13 @@ class Game {
         mouseAngle = lbound;
       }
     }
+
     this.player.angle = mouseAngle;
   }
 
   start() {
-    this.canv.addEventListener('mousemove', this.onMouseMove);
+    this.canv.addEventListener('mousemove', this.handleMove);
+    this.canv.addEventListener('mousedown', this.handleClick);
     requestAnimationFrame(this.animate.bind(this));
   }
 
@@ -73,18 +80,44 @@ class Game {
     ctx.beginPath();
     ctx.moveTo(this.player.x, this.player.y);
     ctx.lineTo(this.player.x + 1.5 * 100 * Math.cos(this.degreesToRadians(this.player.angle)),
-                this.player.y - 1.5 * 100 * Math.sin(this.degreesToRadians(this.player.angle)));
+              this.player.y - 1.5 * 100 * Math.sin(this.degreesToRadians(this.player.angle)));
     ctx.stroke();
   }
 
   animate() {
-
-  this.renderBubbles();
-  this.player.draw(this.ctx);
-  this.renderPlayerAngle(this.ctx);
-
-  requestAnimationFrame(this.animate.bind(this));
+    this.ctx.clearRect(0, 0, 550, 700);
+    this.ctx.fillStyle = 'black';
+    this.ctx.fillRect(0, 0, 1000, 1000);
+    this.renderBubbles();
+    this.player.draw(this.ctx);
+    this.bubble.draw(this.ctx);
+    this.renderPlayerAngle(this.ctx);
+    requestAnimationFrame(this.animate.bind(this));
   }
+
+  handleClick(e) {
+    this.shootBubble(40);
+  }
+
+  shootBubble(delta) {
+    let bubble = this.bubble;
+    if (bubble.canY === 680) {
+      bubble.angle = this.player.angle;
+    }
+    bubble.canX += delta * Math.cos(this.degreesToRadians(bubble.angle));
+    bubble.canY += delta * -1 * Math.sin(this.degreesToRadians(bubble.angle));
+    if (bubble.canX >= 500) {
+      bubble.angle = Math.abs(180 - bubble.angle);
+    } else if (bubble.canX <= 50) {
+      bubble.angle = 180 - bubble.angle;
+      bubble.x = 500 - 33.3;
+    }
+
+  }
+
+
+
+
 }
 
 
