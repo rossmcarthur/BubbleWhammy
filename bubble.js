@@ -1,8 +1,6 @@
-class Bubble {
+const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
- // canX, canY;
- // this.canX = canX;
- // this.canY = canY;
+class Bubble {
   constructor(x, y, color, loaded = false, pos = {}, angle = 0) {
     this.x = x;
     this.y = y;
@@ -13,6 +11,7 @@ class Bubble {
     this.angle = angle;
     this.loaded = loaded;
     this.speed = 10;
+    this.center = 0;
     }
 
     degreesToRadians(angle) {
@@ -22,7 +21,9 @@ class Bubble {
   draw(ctx) {
     ctx.fillStyle = this.color;
     ctx.beginPath();
-
+    // if (this.loaded === false || this.pos === undefined) {
+    //   this.pos = this.getScreenPos(this.x, this.y);
+    // }
     if (this.loaded) {
       this.pos.xPos += this.speed * Math.cos(this.degreesToRadians(this.angle));
       this.pos.yPos += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
@@ -31,20 +32,23 @@ class Bubble {
       } else if (this.pos.xPos <= 50) {
         this.angle = 180 - this.angle;
       }
+
     }
-    
     ctx.arc(this.pos.xPos, this.pos.yPos, 17, 30, 2*Math.PI, true);
     ctx.fill();
   }
 
+
+// FIX THIS!!
+
   getGridPos(xPos, yPos) {
-    let yGrid = Math.floor(yPos / 33.3) - 1;
+    let yGrid = Math.floor(yPos / 33.3);
     let offset = 0;
     if (yPos % 66.6 === 0) {
       offset = 16.65;
     }
-    let xGrid = Math.floor((xPos - offset) / 33.3) - 1;
-    return { xGrid: xGrid, yGrid: yGrid };
+    let xGrid = Math.floor((xPos - offset) / 33.3);
+    return { xGrid: yGrid - 1, yGrid: xGrid };
   }
 
   getScreenPos(col, row) {
@@ -65,6 +69,13 @@ class Bubble {
         yPos = (row * 33.3) + 33.3;
     }
 
+  //   let xPos = (col + 1) * 33.3;
+  //
+  //   if ((row + 16.65) % 2 === 0) {
+  //     xPos += 16.65;
+  //   }
+  //
+  //   let yPos = row + 33.3;
     return { xPos: xPos, yPos: yPos };
   }
 

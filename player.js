@@ -3,13 +3,14 @@ import Bubble from './bubble';
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
 class Player {
-  constructor(name) {
+  constructor(name, board) {
     this.name = name;
+    this.board = board;
     this.score = 0;
     this.x = 266.4;
     this.y = 675;
     this.angle = 0;
-    this.bubble = {};
+    this.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
   }
 
   draw(ctx) {
@@ -19,7 +20,6 @@ class Player {
     ctx.lineWidth = 3;
     ctx.stroke();
   }
-
 
 }
 

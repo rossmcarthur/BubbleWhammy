@@ -20,8 +20,11 @@ class Board {
   shiftRow() {
     this.grid.forEach(row => {
       row.forEach(bubble => {
+        if (bubble instanceof Array === false) {
           bubble.y += 1;
           bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+          bubble.center =  bubble.pos.yPos / bubble.pos.xPos;
+        }
       });
     });
     this.removeRow();
