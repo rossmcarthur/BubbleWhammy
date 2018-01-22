@@ -1,4 +1,4 @@
-import Bubble from './bubble.js';
+import Bubble from './bubble';
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
 class Board {

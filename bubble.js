@@ -6,11 +6,10 @@ class Bubble {
     this.y = y;
     this.pos = pos;
     this.gridPos = {};
-    this.present = true;
     this.color = color;
     this.angle = angle;
     this.loaded = loaded;
-    this.speed = 10;
+    this.speed = 15;
     this.state = state;
     }
 
@@ -24,15 +23,13 @@ class Bubble {
     if (this.loaded === false) {
       this.pos = this.getScreenPos(this.x, this.y);
       this.gridPos = this.getGridPos(this.pos.x, this.pos.y);
-    // } else if (this.loaded === false) {
-    //   this.pos = this.getScreenPos(this.gridPos.x, this.gridPos.y);
     }
     if (this.loaded) {
       this.pos.x += this.speed * Math.cos(this.degreesToRadians(this.angle));
       this.pos.y += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
-      if (this.pos.x >= 500) {
+      if (this.pos.x >= 515) {
         this.angle = Math.abs(180 - this.angle);
-      } else if (this.pos.x <= 50) {
+      } else if (this.pos.x <= 35) {
         this.angle = 180 - this.angle;
       }
 
@@ -42,9 +39,6 @@ class Bubble {
       ctx.fill();
     }
 }
-
-
-// FIX THIS!!
 
   getGridPos(xPos, yPos) {
     let y = Math.floor(yPos / 33.3);

@@ -76,11 +76,10 @@ class Bubble {
     this.y = y;
     this.pos = pos;
     this.gridPos = {};
-    this.present = true;
     this.color = color;
     this.angle = angle;
     this.loaded = loaded;
-    this.speed = 10;
+    this.speed = 15;
     this.state = state;
     }
 
@@ -94,15 +93,13 @@ class Bubble {
     if (this.loaded === false) {
       this.pos = this.getScreenPos(this.x, this.y);
       this.gridPos = this.getGridPos(this.pos.x, this.pos.y);
-    // } else if (this.loaded === false) {
-    //   this.pos = this.getScreenPos(this.gridPos.x, this.gridPos.y);
     }
     if (this.loaded) {
       this.pos.x += this.speed * Math.cos(this.degreesToRadians(this.angle));
       this.pos.y += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
-      if (this.pos.x >= 500) {
+      if (this.pos.x >= 515) {
         this.angle = Math.abs(180 - this.angle);
-      } else if (this.pos.x <= 50) {
+      } else if (this.pos.x <= 35) {
         this.angle = 180 - this.angle;
       }
 
@@ -112,9 +109,6 @@ class Bubble {
       ctx.fill();
     }
 }
-
-
-// FIX THIS!!
 
   getGridPos(xPos, yPos) {
     let y = Math.floor(yPos / 33.3);
@@ -157,7 +151,7 @@ class Bubble {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bubble_js__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bubble__ = __webpack_require__(0);
 
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
@@ -170,7 +164,7 @@ class Board {
     const row = [];
     for(let i = 0; i < 15; i++) {
       let color = colors[Math.floor(Math.random()*colors.length)];
-      let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble_js__["a" /* default */](i, 0, color);
+      let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](i, 0, color);
       bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
       bubble.state = "full";
       row.push(bubble);
@@ -203,7 +197,7 @@ class Board {
     for(let l = 7; l < 18; l++) {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
-        let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble_js__["a" /* default */](j, l);
+        let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](j, l);
         bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
         emptyRow.push(bubble);
       }
@@ -342,7 +336,6 @@ class Game {
     this.player.bubble.draw(this.ctx);
     let cols = this.detectCollision(bubble, board);
     if (cols.length >= 1) {
-      debugger
       let closestCollision = this.findClosestCollision(cols);
       let freeSpace = this.findFreeSpace(board, closestCollision);
       this.findClosestSpace(bubble, board, freeSpace);
@@ -372,47 +365,6 @@ class Game {
     let closestCollision = this.findClosestCollision(collisions);
     let freeSpace = this.findFreeSpace(board, closestCollision);
     this.findClosestSpace(bubble, freeSpace);
-
-
-    // let bubble = this.player.bubble;
-    // let board = this.board.grid;
-    // if (bubble.loaded) {
-    //   for(let i = 0; i < board.length; i++) {
-    //     for(let j = 0; j < board[i].length; j++) {
-    //       let gridBubb = board[i][j];
-    //       if (gridBubb instanceof Array === false) {
-    //         debugger
-    //         if (gridBubb.pos.yPos + 45 >= bubble.pos.yPos && gridBubb.pos.xPos + 45 <= bubble.pos.xPos) {
-    //           bubble.gridPos = bubble.getGridPos((bubble.pos.xPos) - 25, bubble.pos.yPos);
-    //           let test = bubble;
-    //           bubble.pos = bubble.getScreenPos(bubble.gridPos.yGrid, bubble.gridPos.xGrid);
-    //           bubble.loaded = false;
-    //           board[bubble.gridPos.xGrid][bubble.gridPos.yGrid] = test;
-    //           this.player.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
-    //           break;
-    //         } // change for x after
-    //       }
-    //     }
-    //   }
-    // }
-//     bubble.center = bubble.pos.yPos / bubble.pos.xPos;
-//       for(let i = 0; i < board.length; i++) {
-//         for(let j = 0; j < board[i].length; j++) {
-//           let gridBubb = board[i][j];
-//           if (gridBubb instanceof Array === false) {
-//             if (gridBubb.center + 0.06 >= bubble.center) {
-//                         bubble.gridPos = bubble.getGridPos((bubble.pos.xPos) - 25, bubble.pos.yPos);
-//                         let test = bubble;
-//                         bubble.pos = bubble.getScreenPos(bubble.gridPos.yGrid, bubble.gridPos.xGrid);
-//                         bubble.loaded = false;
-//                         board[bubble.gridPos.xGrid][bubble.gridPos.yGrid] = test;
-//                         // this.player.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
-//                         break;
-//             }
-// }
-// }
-// }
-// }
 }
 
 detectCollision(bubble, board) {
@@ -424,9 +376,9 @@ let collisions = [];
         let gridBubble = board[i][j];
         if (gridBubble.state === "full") {
 
-          if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 38 >= bubble.pos.y) {
+          if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 35 >= bubble.pos.y) {
             if (gridBubble.pos.x >= bubble.pos.x) {
-              if (gridBubble.pos.x - 38 <= bubble.pos.x) {
+              if (gridBubble.pos.x - 30 <= bubble.pos.x) {
                 collisions.push({
                   bubble: gridBubble,
                   xDist: gridBubble.pos.x - bubble.pos.x,
@@ -435,31 +387,21 @@ let collisions = [];
                 });
               }
             } else {
-              if (gridBubble.pos.x + 38 >= bubble.pos.x) {
-                collisions.push({
-                  bubble: gridBubble,
-                  xDist: gridBubble.pos.x - bubble.pos.x,
-                  yDist: gridBubble.pos.y - bubble.pos.y,
-                  xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
-                });
+                if (gridBubble.pos.x + 30 >= bubble.pos.x) {
+                  collisions.push({
+                    bubble: gridBubble,
+                    xDist: gridBubble.pos.x - bubble.pos.x,
+                    yDist: gridBubble.pos.y - bubble.pos.y,
+                    xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
+                  });
+                }
               }
-            }
           }
         }
-          // (gridBubble.pos.x + 38 >= bubble.pos.x ||
-          // gridBubble.pos.x - 38 >= bubble.pos.x)) {
-            // if (gridBubble.y % 2 === 0) {
 
-            // } else {
-            //   collisions.push({
-            //     bubble: gridBubble,
-            //     xDist: gridBubble.pos.x - bubble.pos.x,
-            //     yDist: gridBubble.pos.y - bubble.pos.y,
-            //     xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
-            //   });
-            }
-          }
       }
+    }
+  }
   return collisions;
 }
 
@@ -477,7 +419,6 @@ findClosestCollision(collisions) {
     closest: closestBubble,
     distance: distance
   };
-  debugger
   return collisionBubble;
 }
 
@@ -503,7 +444,6 @@ findFreeSpace(board, collisionBubble) {
     board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
     freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1]);
   }
-  debugger
 return freeSpace;
 }
 
@@ -517,7 +457,6 @@ findClosestSpace(bubble, board, freeSpace) {
       distance = dist;
     }
   });
-  debugger
   board[closest.y][closest.x] = bubble;
   bubble.x = closest.x;
   bubble.gridPos.x = closest.x;
@@ -525,8 +464,88 @@ findClosestSpace(bubble, board, freeSpace) {
   bubble.gridPos.y = closest.y;
   bubble.loaded = false;
   this.player.bubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
+  this.clusters(bubble);
 }
 
+findNeighbors(bubble, board) {
+  let neighbors = [];
+  const n1 = board[bubble.y - 1][bubble.x];
+  const n2 = board[bubble.y - 1][bubble.x + 1];
+  const n3 = board[bubble.y][bubble.x + 1];
+  const n4 = board[bubble.y][bubble.x - 1];
+  const n5 = board[bubble.y + 1][bubble.x];
+  const n6 = board[bubble.y + 1][bubble.x + 1];
+  const n7 = board[bubble.y - 1][bubble.x - 1];
+
+    if (bubble.y % 2 !== 0) {
+      if (n1 !== undefined && n1.state === "full") {
+        neighbors.push(n1);
+      }
+      if (n2 !== undefined && n2.state === "full") {
+        neighbors.push(n2);
+      }
+      if(n3 !== undefined && n3.state === "full") {
+        neighbors.push(n3);
+      }
+      if(n4 !== undefined && n4.state === "full") {
+        neighbors.push(n4);
+      }
+      if(n5 !== undefined && n5.state === "full") {
+        neighbors.push(n5);
+      }
+      if(n6 !== undefined && n6.state === "full") {
+        neighbors.push(n6);
+      }
+  } else {
+    if (n7 !== undefined && n7.state === "full") {
+      neighbors.push(n7);
+    }
+    if (n1 !== undefined && n1.state === "full") {
+      neighbors.push(n1);
+    }
+    if(n4 !== undefined && n4.state === "full") {
+      neighbors.push(n4);
+    }
+    if(n3 !== undefined && n3.state === "full") {
+      neighbors.push(n3);
+    }
+    if(n5 !== undefined && n5.state === "full") {
+      neighbors.push(n5);
+    }
+    if(n6 !== undefined && n6.state === "full") {
+      neighbors.push(n6);
+    }
+  }
+  debugger
+  return neighbors;
+}
+
+clusters(bubble) {
+  let color = bubble.color;
+  let checked = [];
+  let queue = [bubble];
+
+  while (queue.length >= 1) {
+    let current = queue.shift();
+    let children = this.findNeighbors(current, this.board.grid);
+    children.forEach(child => {
+      if (child.color === color){
+        if (!queue.includes(child) && !checked.includes(child)) {
+          queue.push(child);
+        }
+      }
+    });
+    if (!checked.includes(current)) {
+      checked.push(current);
+    }
+  }
+  if (checked.length >= 3) {
+    checked.forEach(bubble => {
+      bubble.color = null;
+      bubble.state = "empty";
+    });
+  }
+}
 
 }
 
