@@ -1,7 +1,7 @@
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
 class Bubble {
-  constructor(x, y, color, loaded = false, pos = {}, angle = 0) {
+  constructor(x, y, color = null, loaded = false, pos = {}, state = "empty", angle = 0) {
     this.x = x;
     this.y = y;
     this.pos = pos;
@@ -11,7 +11,7 @@ class Bubble {
     this.angle = angle;
     this.loaded = loaded;
     this.speed = 10;
-    this.center = 0;
+    this.state = state;
     }
 
     degreesToRadians(angle) {
@@ -21,62 +21,60 @@ class Bubble {
   draw(ctx) {
     ctx.fillStyle = this.color;
     ctx.beginPath();
-    // if (this.loaded === false || this.pos === undefined) {
-    //   this.pos = this.getScreenPos(this.x, this.y);
-    // }
+    if (this.loaded === false) {
+      this.pos = this.getScreenPos(this.x, this.y);
+      this.gridPos = this.getGridPos(this.pos.x, this.pos.y);
+    // } else if (this.loaded === false) {
+    //   this.pos = this.getScreenPos(this.gridPos.x, this.gridPos.y);
+    }
     if (this.loaded) {
-      this.pos.xPos += this.speed * Math.cos(this.degreesToRadians(this.angle));
-      this.pos.yPos += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
-      if (this.pos.xPos >= 500) {
+      this.pos.x += this.speed * Math.cos(this.degreesToRadians(this.angle));
+      this.pos.y += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
+      if (this.pos.x >= 500) {
         this.angle = Math.abs(180 - this.angle);
-      } else if (this.pos.xPos <= 50) {
+      } else if (this.pos.x <= 50) {
         this.angle = 180 - this.angle;
       }
 
     }
-    ctx.arc(this.pos.xPos, this.pos.yPos, 17, 30, 2*Math.PI, true);
-    ctx.fill();
-  }
+    ctx.arc(this.pos.x, this.pos.y, 17, 30, 2*Math.PI, true);
+    if (this.state === "full"){
+      ctx.fill();
+    }
+}
 
 
 // FIX THIS!!
 
   getGridPos(xPos, yPos) {
-    let yGrid = Math.floor(yPos / 33.3);
+    let y = Math.floor(yPos / 33.3);
     let offset = 0;
     if (yPos % 66.6 === 0) {
       offset = 16.65;
     }
-    let xGrid = Math.floor((xPos - offset) / 33.3);
-    return { xGrid: yGrid - 1, yGrid: xGrid };
+    let x = Math.floor((xPos - offset) / 33.3);
+    return { x: x - 1, y: y - 1 };
   }
 
   getScreenPos(col, row) {
-    let xPos;
+    let x;
     if (col === 0) {
-      xPos = 33.3;
+      x = 33.3;
     } else {
-        xPos = (col * 33.3) + 33.3;
+        x = (col * 33.3) + 33.3;
     }
     if (row % 2 !== 0) {
-      xPos += 16.65;
+      x += 16.65;
     }
 
-    let yPos;
+    let y;
     if (row === 0) {
-      yPos = 33.3;
+      y = 33.3;
     } else {
-        yPos = (row * 33.3) + 33.3;
+        y = (row * 33.3) + 33.3;
     }
 
-  //   let xPos = (col + 1) * 33.3;
-  //
-  //   if ((row + 16.65) % 2 === 0) {
-  //     xPos += 16.65;
-  //   }
-  //
-  //   let yPos = row + 33.3;
-    return { xPos: xPos, yPos: yPos };
+    return { x: x, y: y};
   }
 
 }

@@ -10,7 +10,7 @@ class Player {
     this.x = 266.4;
     this.y = 675;
     this.angle = 0;
-    this.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
+    this.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
   }
 
   draw(ctx) {

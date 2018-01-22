@@ -12,6 +12,7 @@ class Board {
       let color = colors[Math.floor(Math.random()*colors.length)];
       let bubble = new Bubble(i, 0, color);
       bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+      bubble.state = "full";
       row.push(bubble);
     }
     return row;
@@ -20,11 +21,8 @@ class Board {
   shiftRow() {
     this.grid.forEach(row => {
       row.forEach(bubble => {
-        if (bubble instanceof Array === false) {
           bubble.y += 1;
           bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
-          bubble.center =  bubble.pos.yPos / bubble.pos.xPos;
-        }
       });
     });
     this.removeRow();
@@ -42,10 +40,12 @@ class Board {
     for(let i = 0; i < 6; i++) {
       this.shiftRow();
     }
-    for(let l = 0; l < 12; l++) {
+    for(let l = 7; l < 18; l++) {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
-        emptyRow.push([]);
+        let bubble = new Bubble(j, l);
+        bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+        emptyRow.push(bubble);
       }
       this.grid.push(emptyRow);
     }

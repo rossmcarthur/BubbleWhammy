@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -68,9 +68,162 @@
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+const colors = ["red", "blue", "green", "yellow", "purple", "white"];
+
+class Bubble {
+  constructor(x, y, color = null, loaded = false, pos = {}, state = "empty", angle = 0) {
+    this.x = x;
+    this.y = y;
+    this.pos = pos;
+    this.gridPos = {};
+    this.present = true;
+    this.color = color;
+    this.angle = angle;
+    this.loaded = loaded;
+    this.speed = 10;
+    this.state = state;
+    }
+
+    degreesToRadians(angle) {
+      return angle * (Math.PI / 180);
+    }
+
+  draw(ctx) {
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    if (this.loaded === false) {
+      this.pos = this.getScreenPos(this.x, this.y);
+      this.gridPos = this.getGridPos(this.pos.x, this.pos.y);
+    // } else if (this.loaded === false) {
+    //   this.pos = this.getScreenPos(this.gridPos.x, this.gridPos.y);
+    }
+    if (this.loaded) {
+      this.pos.x += this.speed * Math.cos(this.degreesToRadians(this.angle));
+      this.pos.y += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
+      if (this.pos.x >= 500) {
+        this.angle = Math.abs(180 - this.angle);
+      } else if (this.pos.x <= 50) {
+        this.angle = 180 - this.angle;
+      }
+
+    }
+    ctx.arc(this.pos.x, this.pos.y, 17, 30, 2*Math.PI, true);
+    if (this.state === "full"){
+      ctx.fill();
+    }
+}
+
+
+// FIX THIS!!
+
+  getGridPos(xPos, yPos) {
+    let y = Math.floor(yPos / 33.3);
+    let offset = 0;
+    if (yPos % 66.6 === 0) {
+      offset = 16.65;
+    }
+    let x = Math.floor((xPos - offset) / 33.3);
+    return { x: x - 1, y: y - 1 };
+  }
+
+  getScreenPos(col, row) {
+    let x;
+    if (col === 0) {
+      x = 33.3;
+    } else {
+        x = (col * 33.3) + 33.3;
+    }
+    if (row % 2 !== 0) {
+      x += 16.65;
+    }
+
+    let y;
+    if (row === 0) {
+      y = 33.3;
+    } else {
+        y = (row * 33.3) + 33.3;
+    }
+
+    return { x: x, y: y};
+  }
+
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Bubble);
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bubble_js__ = __webpack_require__(0);
+
+const colors = ["red", "blue", "green", "yellow", "purple", "white"];
+
+class Board {
+  constructor() {
+    this.grid = [];
+  }
+
+  createRow() {
+    const row = [];
+    for(let i = 0; i < 15; i++) {
+      let color = colors[Math.floor(Math.random()*colors.length)];
+      let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble_js__["a" /* default */](i, 0, color);
+      bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+      bubble.state = "full";
+      row.push(bubble);
+    }
+    return row;
+  }
+
+  shiftRow() {
+    this.grid.forEach(row => {
+      row.forEach(bubble => {
+          bubble.y += 1;
+          bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+      });
+    });
+    this.removeRow();
+    return this.grid.unshift(this.createRow());
+  }
+
+  removeRow() {
+    if (this.grid.length === 15) {
+    return this.grid.pop();
+    }
+  }
+
+  populate() {
+    this.grid.unshift(this.createRow());
+    for(let i = 0; i < 6; i++) {
+      this.shiftRow();
+    }
+    for(let l = 7; l < 18; l++) {
+      let emptyRow = [];
+      for(let j = 0; j < 15; j++) {
+        let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble_js__["a" /* default */](j, l);
+        bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+        emptyRow.push(bubble);
+      }
+      this.grid.push(emptyRow);
+    }
+  }
+
+}
+
+/* harmony default export */ __webpack_exports__["a"] = (Board);
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__game_js__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__board_js__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__game_js__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__board_js__ = __webpack_require__(1);
 
 
 
@@ -84,13 +237,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /***/ }),
-/* 1 */
+/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__board__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__board__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__player__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__bubble__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__bubble__ = __webpack_require__(0);
 
 
 
@@ -183,45 +336,18 @@ class Game {
     this.ctx.fillRect(0, 0, 1000, 1000);
     this.renderBubbles();
     this.player.draw(this.ctx);
-    if (this.player.bubble.loaded) {
-      this.snapBubble();
+
+    let bubble = this.player.bubble;
+    let board = this.player.board.grid;
+    this.player.bubble.draw(this.ctx);
+    let cols = this.detectCollision(bubble, board);
+    if (cols.length >= 1) {
+      debugger
+      let closestCollision = this.findClosestCollision(cols);
+      let freeSpace = this.findFreeSpace(board, closestCollision);
+      this.findClosestSpace(bubble, board, freeSpace);
     }
 
-    // let bubble = this.player.bubble;
-    // let board = this.board.grid;
-    // if (bubble.loaded) {
-    //   for(let i = 0; i < board.length; i++) {
-    //     for(let j = 0; j < board[i].length; j++) {
-    //       let gridBubb = board[i][j];
-    //       if (gridBubb instanceof Array === false) {
-    //         if (gridBubb.pos.yPos + 37 >= bubble.pos.yPos) {
-    //           debugger
-    //           bubble.gridPos = bubble.getGridPos((bubble.pos.xPos) - 25, bubble.pos.yPos);
-    //           board[bubble.gridPos.xGrid][bubble.gridPos.yGrid] = bubble;
-    //           bubble.pos = bubble.getScreenPos(bubble.gridPos.yGrid, bubble.gridPos.xGrid);
-    //           bubble.loaded = false;
-    //           break;
-    //         } // change for x after
-    //       }
-    //     }
-    //   }
-    // }
-    // if (bubble.loaded) {
-  //     let board = this.board.grid;
-  //     let gridPos = bubble.getGridPos(bubble.pos.xPos, bubble.pos.yPos);
-  //     if (board[gridPos.xGrid - 1][gridPos.yGrid] instanceof Array === false) {
-  //
-  //     board[gridPos.xGrid][gridPos.yGrid] = bubble;
-  //
-  //     bubble.gridPos = gridPos;
-  //     bubble.pos = bubble.getScreenPos(bubble.gridPos.yGrid, bubble.gridPos.xGrid);
-  //     bubble.loaded = false;
-  //     // debugger
-  // }
-// }
-
-
-    this.player.bubble.draw(this.ctx);
     this.renderPlayerAngle(this.ctx);
     requestAnimationFrame(this.animate.bind(this));
   }
@@ -234,7 +360,7 @@ class Game {
 
   shootBubble() {
     let bubble = this.player.bubble;
-    if (bubble.pos.yPos === 632.6999999999999) {
+    if (bubble.pos.y === 632.6999999999999) {
       bubble.angle = this.player.angle;
     }
   }
@@ -242,25 +368,33 @@ class Game {
   snapBubble() {
     let bubble = this.player.bubble;
     let board = this.board.grid;
-    if (bubble.loaded) {
-      for(let i = 0; i < board.length; i++) {
-        for(let j = 0; j < board[i].length; j++) {
-          let gridBubb = board[i][j];
-          if (gridBubb instanceof Array === false) {
-            debugger
-            if (gridBubb.pos.yPos + 45 >= bubble.pos.yPos && gridBubb.pos.xPos + 45 <= bubble.pos.xPos) {
-              bubble.gridPos = bubble.getGridPos((bubble.pos.xPos) - 25, bubble.pos.yPos);
-              let test = bubble;
-              bubble.pos = bubble.getScreenPos(bubble.gridPos.yGrid, bubble.gridPos.xGrid);
-              bubble.loaded = false;
-              board[bubble.gridPos.xGrid][bubble.gridPos.yGrid] = test;
-              this.player.bubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
-              break;
-            } // change for x after
-          }
-        }
-      }
-    }
+    let collisions = this.detectCollision(bubble, board);
+    let closestCollision = this.findClosestCollision(collisions);
+    let freeSpace = this.findFreeSpace(board, closestCollision);
+    this.findClosestSpace(bubble, freeSpace);
+
+
+    // let bubble = this.player.bubble;
+    // let board = this.board.grid;
+    // if (bubble.loaded) {
+    //   for(let i = 0; i < board.length; i++) {
+    //     for(let j = 0; j < board[i].length; j++) {
+    //       let gridBubb = board[i][j];
+    //       if (gridBubb instanceof Array === false) {
+    //         debugger
+    //         if (gridBubb.pos.yPos + 45 >= bubble.pos.yPos && gridBubb.pos.xPos + 45 <= bubble.pos.xPos) {
+    //           bubble.gridPos = bubble.getGridPos((bubble.pos.xPos) - 25, bubble.pos.yPos);
+    //           let test = bubble;
+    //           bubble.pos = bubble.getScreenPos(bubble.gridPos.yGrid, bubble.gridPos.xGrid);
+    //           bubble.loaded = false;
+    //           board[bubble.gridPos.xGrid][bubble.gridPos.yGrid] = test;
+    //           this.player.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
+    //           break;
+    //         } // change for x after
+    //       }
+    //     }
+    //   }
+    // }
 //     bubble.center = bubble.pos.yPos / bubble.pos.xPos;
 //       for(let i = 0; i < board.length; i++) {
 //         for(let j = 0; j < board[i].length; j++) {
@@ -275,12 +409,125 @@ class Game {
 //                         // this.player.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
 //                         break;
 //             }
-//
 // }
 // }
 // }
 // }
 }
+
+detectCollision(bubble, board) {
+let collisions = [];
+  if (bubble.loaded) {
+    for(let i = 0; i < board.length; i++) {
+      let row = board[i];
+      for(let j = 0; j < row.length; j++) {
+        let gridBubble = board[i][j];
+        if (gridBubble.state === "full") {
+
+          if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 38 >= bubble.pos.y) {
+            if (gridBubble.pos.x >= bubble.pos.x) {
+              if (gridBubble.pos.x - 38 <= bubble.pos.x) {
+                collisions.push({
+                  bubble: gridBubble,
+                  xDist: gridBubble.pos.x - bubble.pos.x,
+                  yDist: gridBubble.pos.y - bubble.pos.y,
+                  xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
+                });
+              }
+            } else {
+              if (gridBubble.pos.x + 38 >= bubble.pos.x) {
+                collisions.push({
+                  bubble: gridBubble,
+                  xDist: gridBubble.pos.x - bubble.pos.x,
+                  yDist: gridBubble.pos.y - bubble.pos.y,
+                  xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
+                });
+              }
+            }
+          }
+        }
+          // (gridBubble.pos.x + 38 >= bubble.pos.x ||
+          // gridBubble.pos.x - 38 >= bubble.pos.x)) {
+            // if (gridBubble.y % 2 === 0) {
+
+            // } else {
+            //   collisions.push({
+            //     bubble: gridBubble,
+            //     xDist: gridBubble.pos.x - bubble.pos.x,
+            //     yDist: gridBubble.pos.y - bubble.pos.y,
+            //     xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
+            //   });
+            }
+          }
+      }
+  return collisions;
+}
+
+findClosestCollision(collisions) {
+  let closestBubble = null;
+  let distance = null;
+  for(let i = 0; i < collisions.length; i++) {
+    let colBubble = collisions[i];
+    if (closestBubble === null || colBubble.xAbs < distance) {
+      closestBubble = colBubble;
+      distance = colBubble.xAbs;
+    }
+  }
+  let collisionBubble =  {
+    closest: closestBubble,
+    distance: distance
+  };
+  debugger
+  return collisionBubble;
+}
+
+findFreeSpace(board, collisionBubble) {
+  let freeSpace = [];
+  if (board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1] !== undefined &&
+    board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
+    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1]);
+  }
+  if (board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x + 1] !== undefined &&
+    board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x + 1].state === "empty") {
+    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x + 1]);
+  }
+  if (board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x] !== undefined &&
+    board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x].state === "empty") {
+    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x]);
+  }
+  if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1] !== undefined &&
+    board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1].state === "empty"){
+    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1]);
+  }
+  if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1] !== undefined &&
+    board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
+    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1]);
+  }
+  debugger
+return freeSpace;
+}
+
+findClosestSpace(bubble, board, freeSpace) {
+  let closest = null;
+  let distance = null;
+  freeSpace.forEach(space => {
+    let dist = Math.abs(space.pos.x - bubble.pos.x);
+    if (closest === null || dist < distance) {
+      closest = space;
+      distance = dist;
+    }
+  });
+  debugger
+  board[closest.y][closest.x] = bubble;
+  bubble.x = closest.x;
+  bubble.gridPos.x = closest.x;
+  bubble.y = closest.y;
+  bubble.gridPos.y = closest.y;
+  bubble.loaded = false;
+  this.player.bubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
+}
+
+
 }
 
 
@@ -289,166 +536,11 @@ class Game {
 
 
 /***/ }),
-/* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bubble_js__ = __webpack_require__(3);
-
-const colors = ["red", "blue", "green", "yellow", "purple", "white"];
-
-class Board {
-  constructor() {
-    this.grid = [];
-  }
-
-  createRow() {
-    const row = [];
-    for(let i = 0; i < 15; i++) {
-      let color = colors[Math.floor(Math.random()*colors.length)];
-      let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble_js__["a" /* default */](i, 0, color);
-      bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
-      row.push(bubble);
-    }
-    return row;
-  }
-
-  shiftRow() {
-    this.grid.forEach(row => {
-      row.forEach(bubble => {
-        if (bubble instanceof Array === false) {
-          bubble.y += 1;
-          bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
-          bubble.center =  bubble.pos.yPos / bubble.pos.xPos;
-        }
-      });
-    });
-    this.removeRow();
-    return this.grid.unshift(this.createRow());
-  }
-
-  removeRow() {
-    if (this.grid.length === 15) {
-    return this.grid.pop();
-    }
-  }
-
-  populate() {
-    this.grid.unshift(this.createRow());
-    for(let i = 0; i < 6; i++) {
-      this.shiftRow();
-    }
-    for(let l = 0; l < 12; l++) {
-      let emptyRow = [];
-      for(let j = 0; j < 15; j++) {
-        emptyRow.push([]);
-      }
-      this.grid.push(emptyRow);
-    }
-  }
-
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Board);
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-const colors = ["red", "blue", "green", "yellow", "purple", "white"];
-
-class Bubble {
-  constructor(x, y, color, loaded = false, pos = {}, angle = 0) {
-    this.x = x;
-    this.y = y;
-    this.pos = pos;
-    this.gridPos = {};
-    this.present = true;
-    this.color = color;
-    this.angle = angle;
-    this.loaded = loaded;
-    this.speed = 10;
-    this.center = 0;
-    }
-
-    degreesToRadians(angle) {
-      return angle * (Math.PI / 180);
-    }
-
-  draw(ctx) {
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    // if (this.loaded === false || this.pos === undefined) {
-    //   this.pos = this.getScreenPos(this.x, this.y);
-    // }
-    if (this.loaded) {
-      this.pos.xPos += this.speed * Math.cos(this.degreesToRadians(this.angle));
-      this.pos.yPos += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
-      if (this.pos.xPos >= 500) {
-        this.angle = Math.abs(180 - this.angle);
-      } else if (this.pos.xPos <= 50) {
-        this.angle = 180 - this.angle;
-      }
-
-    }
-    ctx.arc(this.pos.xPos, this.pos.yPos, 17, 30, 2*Math.PI, true);
-    ctx.fill();
-  }
-
-
-// FIX THIS!!
-
-  getGridPos(xPos, yPos) {
-    let yGrid = Math.floor(yPos / 33.3);
-    let offset = 0;
-    if (yPos % 66.6 === 0) {
-      offset = 16.65;
-    }
-    let xGrid = Math.floor((xPos - offset) / 33.3);
-    return { xGrid: yGrid - 1, yGrid: xGrid };
-  }
-
-  getScreenPos(col, row) {
-    let xPos;
-    if (col === 0) {
-      xPos = 33.3;
-    } else {
-        xPos = (col * 33.3) + 33.3;
-    }
-    if (row % 2 !== 0) {
-      xPos += 16.65;
-    }
-
-    let yPos;
-    if (row === 0) {
-      yPos = 33.3;
-    } else {
-        yPos = (row * 33.3) + 33.3;
-    }
-
-  //   let xPos = (col + 1) * 33.3;
-  //
-  //   if ((row + 16.65) % 2 === 0) {
-  //     xPos += 16.65;
-  //   }
-  //
-  //   let yPos = row + 33.3;
-    return { xPos: xPos, yPos: yPos };
-  }
-
-}
-
-/* harmony default export */ __webpack_exports__["a"] = (Bubble);
-
-
-/***/ }),
 /* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bubble__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__bubble__ = __webpack_require__(0);
 
 
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
@@ -461,7 +553,7 @@ class Player {
     this.x = 266.4;
     this.y = 675;
     this.angle = 0;
-    this.bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999});
+    this.bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
   }
 
   draw(ctx) {
