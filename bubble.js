@@ -9,8 +9,9 @@ class Bubble {
     this.color = color;
     this.angle = angle;
     this.loaded = loaded;
-    this.speed = 15;
+    this.speed = 20;
     this.state = state;
+    this.shifted = false;
     }
 
     degreesToRadians(angle) {
@@ -21,8 +22,8 @@ class Bubble {
     ctx.fillStyle = this.color;
     ctx.beginPath();
     if (this.loaded === false) {
-      this.pos = this.getScreenPos(this.x, this.y);
-      this.gridPos = this.getGridPos(this.pos.x, this.pos.y);
+      this.pos = this.getScreenPos(this, this.x, this.y);
+      this.gridPos = this.getGridPos(this, this.pos.x, this.pos.y);
     }
     if (this.loaded) {
       this.pos.x += this.speed * Math.cos(this.degreesToRadians(this.angle));
@@ -40,24 +41,24 @@ class Bubble {
     }
 }
 
-  getGridPos(xPos, yPos) {
+  getGridPos(bubble, xPos, yPos) {
     let y = Math.floor(yPos / 33.3);
     let offset = 0;
-    if (yPos % 66.6 === 0) {
+    if (bubble.shifted) {
       offset = 16.65;
     }
     let x = Math.floor((xPos - offset) / 33.3);
     return { x: x - 1, y: y - 1 };
   }
 
-  getScreenPos(col, row) {
+  getScreenPos(bubble, col, row) {
     let x;
     if (col === 0) {
       x = 33.3;
     } else {
         x = (col * 33.3) + 33.3;
     }
-    if (row % 2 !== 0) {
+    if (bubble.shifted) {
       x += 16.65;
     }
 

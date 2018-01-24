@@ -11,6 +11,7 @@ class Player {
     this.y = 675;
     this.angle = 0;
     this.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
+    this.nextBubble = new Bubble(5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
   }
 
   draw(ctx) {

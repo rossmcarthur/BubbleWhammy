@@ -16,6 +16,7 @@ class Game {
     this.handleMove = this.handleMove.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.state = 'ready';
+    this.turns = 0;
   }
 
   handleMove(e) {
@@ -51,9 +52,7 @@ class Game {
   renderBubbles() {
     this.board.grid.forEach(row => {
       row.forEach(bubble => {
-        if (bubble instanceof Array === false) {
           bubble.draw(this.ctx);
-        }
       });
     });
   }
@@ -88,18 +87,35 @@ class Game {
     this.ctx.clearRect(0, 0, 550, 700);
     this.ctx.fillStyle = 'black';
     this.ctx.fillRect(0, 0, 1000, 1000);
+    if (this.turns < 50 && this.turns > 0) {
+      if (this.turns % 10 === 0) {
+        this.board.shiftRow();
+        this.turns = 0;
+      }
+    }
     this.renderBubbles();
     this.player.draw(this.ctx);
 
     let bubble = this.player.bubble;
     let board = this.player.board.grid;
     this.player.bubble.draw(this.ctx);
+    this.player.nextBubble.draw(this.ctx);
     let cols = this.detectCollision(bubble, board);
     if (cols.length >= 1) {
       let closestCollision = this.findClosestCollision(cols);
       let freeSpace = this.findFreeSpace(board, closestCollision);
       this.findClosestSpace(bubble, board, freeSpace);
     }
+    // let floaters = [];
+    // board[0].forEach( bubble => {
+    //   floaters.concat(this.findFloaters(bubble, board));
+    // });
+    // board.forEach(bubble => {
+    //   if (!floaters.includes(bubble)) {
+    //     bubble.color = null;
+    //     bubble.state = "empty";
+    //   }
+    // });
 
     this.renderPlayerAngle(this.ctx);
     requestAnimationFrame(this.animate.bind(this));
@@ -135,7 +151,6 @@ let collisions = [];
       for(let j = 0; j < row.length; j++) {
         let gridBubble = board[i][j];
         if (gridBubble.state === "full") {
-
           if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 35 >= bubble.pos.y) {
             if (gridBubble.pos.x >= bubble.pos.x) {
               if (gridBubble.pos.x - 30 <= bubble.pos.x) {
@@ -174,6 +189,7 @@ findClosestCollision(collisions) {
       closestBubble = colBubble;
       distance = colBubble.xAbs;
     }
+
   }
   let collisionBubble =  {
     closest: closestBubble,
@@ -211,7 +227,7 @@ findClosestSpace(bubble, board, freeSpace) {
   let closest = null;
   let distance = null;
   freeSpace.forEach(space => {
-    let dist = Math.abs(space.pos.x - bubble.pos.x);
+    let dist = Math.abs((space.pos.x) - bubble.pos.x);
     if (closest === null || dist < distance) {
       closest = space;
       distance = dist;
@@ -219,12 +235,19 @@ findClosestSpace(bubble, board, freeSpace) {
   });
   board[closest.y][closest.x] = bubble;
   bubble.x = closest.x;
+  if (board[closest.y - 1][closest.x].shifted === false) { // CHANGE TO ACCOUNT FOR BUBBLES WITH NONE ABOVE
+    bubble.shifted = true;
+  }
   bubble.gridPos.x = closest.x;
   bubble.y = closest.y;
   bubble.gridPos.y = closest.y;
-  bubble.loaded = false;
-  this.player.bubble = new Bubble(7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
   this.clusters(bubble);
+  bubble.loaded = false;
+  let nextBubble = this.player.nextBubble;
+  nextBubble.x = 7;
+  this.player.bubble = nextBubble;
+  this.player.nextBubble = new Bubble(5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
+  this.turns += 1;
 }
 
 findNeighbors(bubble, board) {
@@ -236,8 +259,9 @@ findNeighbors(bubble, board) {
   const n5 = board[bubble.y + 1][bubble.x];
   const n6 = board[bubble.y + 1][bubble.x + 1];
   const n7 = board[bubble.y - 1][bubble.x - 1];
+  const n8 = board[bubble.y + 1][bubble.x - 1];
 
-    if (bubble.y % 2 !== 0) {
+    if (bubble.shifted) {
       if (n1 !== undefined && n1.state === "full") {
         neighbors.push(n1);
       }
@@ -272,11 +296,10 @@ findNeighbors(bubble, board) {
     if(n5 !== undefined && n5.state === "full") {
       neighbors.push(n5);
     }
-    if(n6 !== undefined && n6.state === "full") {
-      neighbors.push(n6);
+    if(n8 !== undefined && n8.state === "full") {
+      neighbors.push(n8);
     }
   }
-  debugger
   return neighbors;
 }
 
@@ -284,12 +307,26 @@ clusters(bubble) {
   let color = bubble.color;
   let checked = [];
   let queue = [bubble];
-
+  let lone = [];
   while (queue.length >= 1) {
     let current = queue.shift();
     let children = this.findNeighbors(current, this.board.grid);
     children.forEach(child => {
-      if (child.color === color){
+    //   if (child.color !== color) {
+    //
+    //   let parents = this.findNeighbors(child, this.board.grid);
+    //
+    //   let same = true;
+    //   parents.forEach(parent => {
+    //     if (parent.color !== color) {
+    //       same = false;
+    //     }
+    //   });
+    //   if (same) {
+    //     lone.push(child);
+    //   }
+    // } else if
+    if (child.color === color){
         if (!queue.includes(child) && !checked.includes(child)) {
           queue.push(child);
         }
@@ -305,6 +342,61 @@ clusters(bubble) {
       bubble.state = "empty";
     });
   }
+  // lone.forEach(bubble => {
+  //   bubble.color = null;
+  //   bubble.state = "empty";
+  // });
+}
+
+bfsNeighbors(bubble, board) {
+  let neighbors = [];
+  const n1 = board[bubble.y + 1][bubble.x];
+  const n2 = board[bubble.y + 1][bubble.x + 1];
+  const n3 = board[bubble.y + 1][bubble.x - 1];
+
+  if (bubble.shifted) {
+    if (n2.state === "full") {
+      neighbors.push(n1);
+    }
+  } else {
+    if (n3.state === "full") {
+      neighbors.push(n2);
+    }
+  }
+
+  if (n1.state === "full") {
+    neighbors.push(n1);
+  }
+}
+
+won(){
+  this.board.grid.forEach(row => {
+    row.every(node => {
+      return node.state === "empty";
+    });
+  });
+}
+
+gameOver() {
+  this.board.grid[17].some(node => {
+    return node.state === "full";
+  });
+}
+
+findFloaters(bubble, board) {
+  let checked = [];
+  let queue = [bubble];
+  while(queue.length >= 1) {
+    let current = queue.shift();
+    let children = this.findNeighbors(current, board);
+    children.forEach(child => {
+      if (!queue.includes(child) && !checked.includes(child))
+      queue.push(child);
+    });
+    if (!checked.includes(current));
+    checked.push(current);
+  }
+  return checked;
 }
 
 }

@@ -79,8 +79,9 @@ class Bubble {
     this.color = color;
     this.angle = angle;
     this.loaded = loaded;
-    this.speed = 15;
+    this.speed = 20;
     this.state = state;
+    this.shifted = false;
     }
 
     degreesToRadians(angle) {
@@ -91,8 +92,8 @@ class Bubble {
     ctx.fillStyle = this.color;
     ctx.beginPath();
     if (this.loaded === false) {
-      this.pos = this.getScreenPos(this.x, this.y);
-      this.gridPos = this.getGridPos(this.pos.x, this.pos.y);
+      this.pos = this.getScreenPos(this, this.x, this.y);
+      this.gridPos = this.getGridPos(this, this.pos.x, this.pos.y);
     }
     if (this.loaded) {
       this.pos.x += this.speed * Math.cos(this.degreesToRadians(this.angle));
@@ -110,24 +111,24 @@ class Bubble {
     }
 }
 
-  getGridPos(xPos, yPos) {
+  getGridPos(bubble, xPos, yPos) {
     let y = Math.floor(yPos / 33.3);
     let offset = 0;
-    if (yPos % 66.6 === 0) {
+    if (bubble.shifted) {
       offset = 16.65;
     }
     let x = Math.floor((xPos - offset) / 33.3);
     return { x: x - 1, y: y - 1 };
   }
 
-  getScreenPos(col, row) {
+  getScreenPos(bubble, col, row) {
     let x;
     if (col === 0) {
       x = 33.3;
     } else {
         x = (col * 33.3) + 33.3;
     }
-    if (row % 2 !== 0) {
+    if (bubble.shifted) {
       x += 16.65;
     }
 
@@ -165,8 +166,13 @@ class Board {
     for(let i = 0; i < 15; i++) {
       let color = colors[Math.floor(Math.random()*colors.length)];
       let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](i, 0, color);
-      bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+      bubble.pos = bubble.getScreenPos(bubble, bubble.x, bubble.y);
       bubble.state = "full";
+      if (this.grid.length < 1 || this.grid[0][0].shifted) {
+        bubble.shifted = false;
+      } else {
+        bubble.shifted = true;
+      }
       row.push(bubble);
     }
     return row;
@@ -176,7 +182,7 @@ class Board {
     this.grid.forEach(row => {
       row.forEach(bubble => {
           bubble.y += 1;
-          bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+          bubble.pos = bubble.getScreenPos(bubble, bubble.x, bubble.y);
       });
     });
     this.removeRow();
@@ -198,7 +204,10 @@ class Board {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
         let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](j, l);
-        bubble.pos = bubble.getScreenPos(bubble.x, bubble.y);
+        bubble.pos = bubble.getScreenPos(bubble, bubble.x, bubble.y);
+        if (!this.grid[bubble.y - 1][bubble.x].shifted) {
+          bubble.shifted = true;
+        }
         emptyRow.push(bubble);
       }
       this.grid.push(emptyRow);
@@ -256,6 +265,7 @@ class Game {
     this.handleMove = this.handleMove.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.state = 'ready';
+    this.turns = 0;
   }
 
   handleMove(e) {
@@ -291,9 +301,7 @@ class Game {
   renderBubbles() {
     this.board.grid.forEach(row => {
       row.forEach(bubble => {
-        if (bubble instanceof Array === false) {
           bubble.draw(this.ctx);
-        }
       });
     });
   }
@@ -328,18 +336,35 @@ class Game {
     this.ctx.clearRect(0, 0, 550, 700);
     this.ctx.fillStyle = 'black';
     this.ctx.fillRect(0, 0, 1000, 1000);
+    if (this.turns < 50 && this.turns > 0) {
+      if (this.turns % 10 === 0) {
+        this.board.shiftRow();
+        this.turns = 0;
+      }
+    }
     this.renderBubbles();
     this.player.draw(this.ctx);
 
     let bubble = this.player.bubble;
     let board = this.player.board.grid;
     this.player.bubble.draw(this.ctx);
+    this.player.nextBubble.draw(this.ctx);
     let cols = this.detectCollision(bubble, board);
     if (cols.length >= 1) {
       let closestCollision = this.findClosestCollision(cols);
       let freeSpace = this.findFreeSpace(board, closestCollision);
       this.findClosestSpace(bubble, board, freeSpace);
     }
+    // let floaters = [];
+    // board[0].forEach( bubble => {
+    //   floaters.concat(this.findFloaters(bubble, board));
+    // });
+    // board.forEach(bubble => {
+    //   if (!floaters.includes(bubble)) {
+    //     bubble.color = null;
+    //     bubble.state = "empty";
+    //   }
+    // });
 
     this.renderPlayerAngle(this.ctx);
     requestAnimationFrame(this.animate.bind(this));
@@ -375,7 +400,6 @@ let collisions = [];
       for(let j = 0; j < row.length; j++) {
         let gridBubble = board[i][j];
         if (gridBubble.state === "full") {
-
           if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 35 >= bubble.pos.y) {
             if (gridBubble.pos.x >= bubble.pos.x) {
               if (gridBubble.pos.x - 30 <= bubble.pos.x) {
@@ -414,6 +438,7 @@ findClosestCollision(collisions) {
       closestBubble = colBubble;
       distance = colBubble.xAbs;
     }
+
   }
   let collisionBubble =  {
     closest: closestBubble,
@@ -451,7 +476,7 @@ findClosestSpace(bubble, board, freeSpace) {
   let closest = null;
   let distance = null;
   freeSpace.forEach(space => {
-    let dist = Math.abs(space.pos.x - bubble.pos.x);
+    let dist = Math.abs((space.pos.x) - bubble.pos.x);
     if (closest === null || dist < distance) {
       closest = space;
       distance = dist;
@@ -459,12 +484,19 @@ findClosestSpace(bubble, board, freeSpace) {
   });
   board[closest.y][closest.x] = bubble;
   bubble.x = closest.x;
+  if (board[closest.y - 1][closest.x].shifted === false) { // CHANGE TO ACCOUNT FOR BUBBLES WITH NONE ABOVE
+    bubble.shifted = true;
+  }
   bubble.gridPos.x = closest.x;
   bubble.y = closest.y;
   bubble.gridPos.y = closest.y;
-  bubble.loaded = false;
-  this.player.bubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
   this.clusters(bubble);
+  bubble.loaded = false;
+  let nextBubble = this.player.nextBubble;
+  nextBubble.x = 7;
+  this.player.bubble = nextBubble;
+  this.player.nextBubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
+  this.turns += 1;
 }
 
 findNeighbors(bubble, board) {
@@ -476,8 +508,9 @@ findNeighbors(bubble, board) {
   const n5 = board[bubble.y + 1][bubble.x];
   const n6 = board[bubble.y + 1][bubble.x + 1];
   const n7 = board[bubble.y - 1][bubble.x - 1];
+  const n8 = board[bubble.y + 1][bubble.x - 1];
 
-    if (bubble.y % 2 !== 0) {
+    if (bubble.shifted) {
       if (n1 !== undefined && n1.state === "full") {
         neighbors.push(n1);
       }
@@ -512,11 +545,10 @@ findNeighbors(bubble, board) {
     if(n5 !== undefined && n5.state === "full") {
       neighbors.push(n5);
     }
-    if(n6 !== undefined && n6.state === "full") {
-      neighbors.push(n6);
+    if(n8 !== undefined && n8.state === "full") {
+      neighbors.push(n8);
     }
   }
-  debugger
   return neighbors;
 }
 
@@ -524,12 +556,26 @@ clusters(bubble) {
   let color = bubble.color;
   let checked = [];
   let queue = [bubble];
-
+  let lone = [];
   while (queue.length >= 1) {
     let current = queue.shift();
     let children = this.findNeighbors(current, this.board.grid);
     children.forEach(child => {
-      if (child.color === color){
+    //   if (child.color !== color) {
+    //
+    //   let parents = this.findNeighbors(child, this.board.grid);
+    //
+    //   let same = true;
+    //   parents.forEach(parent => {
+    //     if (parent.color !== color) {
+    //       same = false;
+    //     }
+    //   });
+    //   if (same) {
+    //     lone.push(child);
+    //   }
+    // } else if
+    if (child.color === color){
         if (!queue.includes(child) && !checked.includes(child)) {
           queue.push(child);
         }
@@ -545,6 +591,61 @@ clusters(bubble) {
       bubble.state = "empty";
     });
   }
+  // lone.forEach(bubble => {
+  //   bubble.color = null;
+  //   bubble.state = "empty";
+  // });
+}
+
+bfsNeighbors(bubble, board) {
+  let neighbors = [];
+  const n1 = board[bubble.y + 1][bubble.x];
+  const n2 = board[bubble.y + 1][bubble.x + 1];
+  const n3 = board[bubble.y + 1][bubble.x - 1];
+
+  if (bubble.shifted) {
+    if (n2.state === "full") {
+      neighbors.push(n1);
+    }
+  } else {
+    if (n3.state === "full") {
+      neighbors.push(n2);
+    }
+  }
+
+  if (n1.state === "full") {
+    neighbors.push(n1);
+  }
+}
+
+won(){
+  this.board.grid.forEach(row => {
+    row.every(node => {
+      return node.state === "empty";
+    });
+  });
+}
+
+gameOver() {
+  this.board.grid[17].some(node => {
+    return node.state === "full";
+  });
+}
+
+findFloaters(bubble, board) {
+  let checked = [];
+  let queue = [bubble];
+  while(queue.length >= 1) {
+    let current = queue.shift();
+    let children = this.findNeighbors(current, board);
+    children.forEach(child => {
+      if (!queue.includes(child) && !checked.includes(child))
+      queue.push(child);
+    });
+    if (!checked.includes(current));
+    checked.push(current);
+  }
+  return checked;
 }
 
 }
@@ -573,6 +674,7 @@ class Player {
     this.y = 675;
     this.angle = 0;
     this.bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
+    this.nextBubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
   }
 
   draw(ctx) {
