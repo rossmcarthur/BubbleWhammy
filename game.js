@@ -78,7 +78,7 @@ class Game {
     ctx.strokeStyle = "white";
     ctx.beginPath();
     ctx.moveTo(265, 625);
-    ctx.lineTo(this.player.x + 130 * Math.cos(this.degreesToRadians(this.player.angle)),
+    ctx.lineTo(this.player.x + 100 * Math.cos(this.degreesToRadians(this.player.angle)),
               this.player.y - 130 * Math.sin(this.degreesToRadians(this.player.angle)));
     ctx.stroke();
   }
@@ -107,11 +107,12 @@ class Game {
       let freeSpace = this.findFreeSpace(board, closestCollision);
       this.findClosestSpace(bubble, board, freeSpace);
       board[0].forEach(bubble => {
-        this.findFloaters(bubble, board);
+      this.findFloaters(bubble, board);
       });
     }
-
-
+    if (this.gameOver()) {
+      this.ctx.clearRect(0, 0, 550, 700);
+    }
     requestAnimationFrame(this.animate.bind(this));
   }
 
@@ -224,6 +225,15 @@ findFreeSpace(board, collisionBubble) {
 return freeSpace;
 }
 
+gameOver() {
+  for(let i = 0; i < 15; i++) {
+    if (this.board.grid[17][i].state === "full") {
+      return true;
+    }
+  }
+  return false;
+}
+
 findClosestSpace(bubble, board, freeSpace) {
   let closest = null;
   let distance = null;
@@ -236,9 +246,9 @@ findClosestSpace(bubble, board, freeSpace) {
   });
   board[closest.y][closest.x] = bubble;
   bubble.x = closest.x;
-  if (board[closest.y - 1][closest.x].shifted === false) { // CHANGE TO ACCOUNT FOR BUBBLES WITH NONE ABOVE
-    bubble.shifted = true;
-  }
+    if (closest.y > 0 && board[closest.y - 1][closest.x].shifted === false) { // CHANGE TO ACCOUNT FOR BUBBLES WITH NONE ABOVE
+      bubble.shifted = true;
+    }
   bubble.gridPos.x = closest.x;
   bubble.y = closest.y;
   bubble.gridPos.y = closest.y;
@@ -249,6 +259,7 @@ findClosestSpace(bubble, board, freeSpace) {
   this.player.bubble = nextBubble;
   this.player.nextBubble = new Bubble(5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
   this.turns += 1;
+
 }
 
 findNeighbors(bubble, board) {
@@ -385,40 +396,40 @@ clusters(bubble) {
   }
 }
 
-// bfsNeighbors(bubble, board) {
-//   let neighbors = [];
-//   const n1 = board[bubble.y + 1][bubble.x];
-//   const n2 = board[bubble.y + 1][bubble.x + 1];
-//   const n3 = board[bubble.y + 1][bubble.x - 1];
-//   const n4 = board[bubble.y][bubble.x + 1];
-//   const n5 = board[bubble.y][bubble.x - 1];
-//   if (bubble.state === "full") {
-//     if (bubble.shifted) {
-//       if (bubble.x < 14) {
-//         if (n2.state === "full") {
-//           neighbors.push(n2);
-//         }
-//         if (n4.state === "full") {
-//           neighbors.push(n4);
-//         }
-//       }
-//     } else {
-//         if (bubble.x > 0) {
-//           if (n3.state === "full") {
-//             neighbors.push(n3);
-//         }
-//         if (n5.state === "full") {
-//           neighbors.push(n5);
-//         }
-//       }
-//     }
-//
-//     if (n1.state === "full") {
-//       neighbors.push(n1);
-//     }
-//   }
-//   return neighbors;
-// }
+bfsNeighbors(bubble, board) {
+  let neighbors = [];
+  const n1 = board[bubble.y + 1][bubble.x];
+  const n2 = board[bubble.y + 1][bubble.x + 1];
+  const n3 = board[bubble.y + 1][bubble.x - 1];
+  const n4 = board[bubble.y][bubble.x + 1];
+  const n5 = board[bubble.y][bubble.x - 1];
+  if (bubble.state === "full") {
+    if (bubble.shifted) {
+      if (bubble.x < 14) {
+        if (n2.state === "full") {
+          neighbors.push(n2);
+        }
+        if (n4.state === "full") {
+          neighbors.push(n4);
+        }
+      }
+    } else {
+        if (bubble.x > 0) {
+          if (n3.state === "full") {
+            neighbors.push(n3);
+        }
+        if (n5.state === "full") {
+          neighbors.push(n5);
+        }
+      }
+    }
+
+    if (n1.state === "full") {
+      neighbors.push(n1);
+    }
+  }
+  return neighbors;
+}
 
 won(){
   this.board.grid.forEach(row => {
@@ -428,11 +439,6 @@ won(){
   });
 }
 
-gameOver() {
-  this.board.grid[17].some(node => {
-    return node.state === "full";
-  });
-}
 
 findFloaters(bubble, board) {
   let top = board[0];
@@ -442,7 +448,7 @@ findFloaters(bubble, board) {
     while(queue.length > 0) {
       let current = queue.shift();
       checked.push(current);
-      let children = this.findNeighbors(current, board);
+      let children = this.bfsNeighbors(current, board);
         children.forEach(child => {
           if (!queue.includes(child) && !checked.includes(child))
           queue.push(child);

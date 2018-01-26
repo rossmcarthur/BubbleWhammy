@@ -28,14 +28,11 @@ class Bubble {
     if (this.loaded) {
       this.pos.x += this.speed * Math.cos(this.degreesToRadians(this.angle));
       this.pos.y += this.speed * -1 * Math.sin(this.degreesToRadians(this.angle));
-      if (this.pos.x >= 515) {
-        this.angle = Math.abs(180 - this.angle);
-      } else if (this.pos.x <= 35) {
-        this.angle = 180 - this.angle;
-      } else if (this.pos.y <= 10) {
-      // SNAP BUBBLE TO TOP
-      }
-
+        if (this.pos.x >= 515) {
+          this.angle = Math.abs(180 - this.angle);
+        } else if (this.pos.x <= 35) {
+          this.angle = 180 - this.angle;
+        }
     }
     ctx.arc(this.pos.x, this.pos.y, 17, 30, 2*Math.PI, true);
     if (this.state === "full"){
@@ -63,14 +60,12 @@ class Bubble {
     if (bubble.shifted) {
       x += 16.65;
     }
-
     let y;
     if (row === 0) {
       y = 33.3;
     } else {
         y = (row * 33.3) + 33.3;
     }
-
     return { x: x, y: y};
   }
 
