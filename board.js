@@ -42,10 +42,10 @@ class Board {
 
   populate() {
     this.grid.unshift(this.createRow());
-    for(let i = 0; i < 6; i++) {
+    for(let i = 0; i < 1; i++) {
       this.shiftRow();
     }
-    for(let l = 7; l < 18; l++) {
+    for(let l = 2; l < 18; l++) {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
         let bubble = new Bubble(j, l);

@@ -32,6 +32,8 @@ class Bubble {
         this.angle = Math.abs(180 - this.angle);
       } else if (this.pos.x <= 35) {
         this.angle = 180 - this.angle;
+      } else if (this.pos.y <= 10) {
+      // SNAP BUBBLE TO TOP
       }
 
     }

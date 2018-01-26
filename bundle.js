@@ -102,6 +102,8 @@ class Bubble {
         this.angle = Math.abs(180 - this.angle);
       } else if (this.pos.x <= 35) {
         this.angle = 180 - this.angle;
+      } else if (this.pos.y <= 10) {
+      // SNAP BUBBLE TO TOP
       }
 
     }
@@ -197,10 +199,10 @@ class Board {
 
   populate() {
     this.grid.unshift(this.createRow());
-    for(let i = 0; i < 6; i++) {
+    for(let i = 0; i < 1; i++) {
       this.shiftRow();
     }
-    for(let l = 7; l < 18; l++) {
+    for(let l = 2; l < 18; l++) {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
         let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](j, l);
@@ -326,9 +328,9 @@ class Game {
     ctx.lineWidth = 2;
     ctx.strokeStyle = "white";
     ctx.beginPath();
-    ctx.moveTo(this.player.x, this.player.y);
-    ctx.lineTo(this.player.x + 1.5 * 100 * Math.cos(this.degreesToRadians(this.player.angle)),
-              this.player.y - 1.5 * 100 * Math.sin(this.degreesToRadians(this.player.angle)));
+    ctx.moveTo(265, 625);
+    ctx.lineTo(this.player.x + 130 * Math.cos(this.degreesToRadians(this.player.angle)),
+              this.player.y - 130 * Math.sin(this.degreesToRadians(this.player.angle)));
     ctx.stroke();
   }
 
@@ -347,6 +349,7 @@ class Game {
 
     let bubble = this.player.bubble;
     let board = this.player.board.grid;
+    this.renderPlayerAngle(this.ctx);
     this.player.bubble.draw(this.ctx);
     this.player.nextBubble.draw(this.ctx);
     let cols = this.detectCollision(bubble, board);
@@ -354,29 +357,22 @@ class Game {
       let closestCollision = this.findClosestCollision(cols);
       let freeSpace = this.findFreeSpace(board, closestCollision);
       this.findClosestSpace(bubble, board, freeSpace);
+      board[0].forEach(bubble => {
+        this.findFloaters(bubble, board);
+      });
     }
-    // let floaters = [];
-    // board[0].forEach( bubble => {
-    //   floaters.concat(this.findFloaters(bubble, board));
-    // });
-    // board.forEach(bubble => {
-    //   if (!floaters.includes(bubble)) {
-    //     bubble.color = null;
-    //     bubble.state = "empty";
-    //   }
-    // });
 
-    this.renderPlayerAngle(this.ctx);
+
     requestAnimationFrame(this.animate.bind(this));
   }
 
   handleClick(e) {
     this.state = "shooting";
     this.player.bubble.loaded = true;
-    this.shootBubble();
+    this.setAngle();
   }
 
-  shootBubble() {
+  setAngle() {
     let bubble = this.player.bubble;
     if (bubble.pos.y === 632.6999999999999) {
       bubble.angle = this.player.angle;
@@ -401,17 +397,11 @@ let collisions = [];
         let gridBubble = board[i][j];
         if (gridBubble.state === "full") {
           if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 35 >= bubble.pos.y) {
-            if (gridBubble.pos.x >= bubble.pos.x) {
-              if (gridBubble.pos.x - 30 <= bubble.pos.x) {
-                collisions.push({
-                  bubble: gridBubble,
-                  xDist: gridBubble.pos.x - bubble.pos.x,
-                  yDist: gridBubble.pos.y - bubble.pos.y,
-                  xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
-                });
-              }
-            } else {
-                if (gridBubble.pos.x + 30 >= bubble.pos.x) {
+            if (gridBubble.shifted) {
+              gridBubble.pos.x -= 16.65;
+            }
+              if (gridBubble.pos.x >= bubble.pos.x) {
+                if (gridBubble.pos.x - 30 <= bubble.pos.x) {
                   collisions.push({
                     bubble: gridBubble,
                     xDist: gridBubble.pos.x - bubble.pos.x,
@@ -419,10 +409,19 @@ let collisions = [];
                     xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
                   });
                 }
+              } else {
+                  if (gridBubble.pos.x + 30 >= bubble.pos.x) {
+                    collisions.push({
+                      bubble: gridBubble,
+                      xDist: gridBubble.pos.x - bubble.pos.x,
+                      yDist: gridBubble.pos.y - bubble.pos.y,
+                      xAbs: Math.abs(gridBubble.pos.x - bubble.pos.x)
+                    });
+                  }
+                }
               }
-          }
-        }
 
+        }
       }
     }
   }
@@ -449,6 +448,18 @@ findClosestCollision(collisions) {
 
 findFreeSpace(board, collisionBubble) {
   let freeSpace = [];
+
+  if (!collisionBubble.closest.bubble.shifted) {
+    if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1] !== undefined &&
+      board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
+      freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1]);
+    }
+  } else {
+    if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1] !== undefined &&
+      board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1].state === "empty"){
+      freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1]);
+    }
+  }
   if (board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1] !== undefined &&
     board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
     freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1]);
@@ -460,14 +471,6 @@ findFreeSpace(board, collisionBubble) {
   if (board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x] !== undefined &&
     board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x].state === "empty") {
     freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x]);
-  }
-  if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1] !== undefined &&
-    board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1].state === "empty"){
-    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1]);
-  }
-  if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1] !== undefined &&
-    board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
-    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1]);
   }
 return freeSpace;
 }
@@ -501,53 +504,107 @@ findClosestSpace(bubble, board, freeSpace) {
 
 findNeighbors(bubble, board) {
   let neighbors = [];
-  const n1 = board[bubble.y - 1][bubble.x];
-  const n2 = board[bubble.y - 1][bubble.x + 1];
-  const n3 = board[bubble.y][bubble.x + 1];
-  const n4 = board[bubble.y][bubble.x - 1];
-  const n5 = board[bubble.y + 1][bubble.x];
-  const n6 = board[bubble.y + 1][bubble.x + 1];
-  const n7 = board[bubble.y - 1][bubble.x - 1];
-  const n8 = board[bubble.y + 1][bubble.x - 1];
-
-    if (bubble.shifted) {
-      if (n1 !== undefined && n1.state === "full") {
-        neighbors.push(n1);
+    if (bubble.x === 0 && bubble.y === 0) {
+      if(bubble.shifted) {
+        if(board[bubble.y + 1][bubble.x + 1].state === "full") {
+          neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+        }
       }
-      if (n2 !== undefined && n2.state === "full") {
-        neighbors.push(n2);
+        if(board[bubble.y][bubble.x + 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x + 1]);
+        }
+    } else if (bubble.x === 14 && bubble.y === 0) {
+      if (!bubble.shifted) {
+        if(board[bubble.y + 1][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+        }
       }
-      if(n3 !== undefined && n3.state === "full") {
-        neighbors.push(n3);
+        if(board[bubble.y][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x - 1]);
+        }
+    } else if (bubble.y === 0) {
+      if (bubble.shifted) {
+        if(board[bubble.y + 1][bubble.x + 1].state === "full") {
+          neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+        }
+      } else {
+          if(board[bubble.y + 1][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+          }
+        }
+        if(board[bubble.y][bubble.x + 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x + 1]);
+        }
+        if(board[bubble.y][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x - 1]);
+        }
+    } else if (bubble.x === 0) {
+      if (bubble.shifted) {
+        if (board[bubble.y - 1][bubble.x + 1].state === "full") {
+          neighbors.push(board[bubble.y - 1][bubble.x + 1]);
+        }
+        if(board[bubble.y + 1][bubble.x + 1].state === "full") {
+              neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+        }
       }
-      if(n4 !== undefined && n4.state === "full") {
-        neighbors.push(n4);
+      if (board[bubble.y - 1][bubble.x].state === "full") {
+        neighbors.push(board[bubble.y - 1][bubble.x]);
       }
-      if(n5 !== undefined && n5.state === "full") {
-        neighbors.push(n5);
+      if(board[bubble.y][bubble.x + 1].state === "full") {
+        neighbors.push(board[bubble.y][bubble.x + 1]);
       }
-      if(n6 !== undefined && n6.state === "full") {
-        neighbors.push(n6);
+    } else if (bubble.x === 14) {
+      if (!bubble.shifted) {
+        if(board[bubble.y + 1][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+        }
+        if (board[bubble.y - 1][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y - 1][bubble.x - 1]);
+        }
       }
-  } else {
-    if (n7 !== undefined && n7.state === "full") {
-      neighbors.push(n7);
+        if (board[bubble.y - 1][bubble.x].state === "full") {
+          neighbors.push(board[bubble.y - 1][bubble.x]);
+        }
+        if(board[bubble.y][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x - 1]);
+        }
+    } else {
+        if (bubble.shifted) {
+          if (board[bubble.y - 1][bubble.x] !== undefined && board[bubble.y - 1][bubble.x].state === "full") {
+            neighbors.push(board[bubble.y - 1][bubble.x]);
+          }
+          if (board[bubble.y - 1][bubble.x + 1] !== undefined && board[bubble.y - 1][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y - 1][bubble.x + 1]);
+          }
+          if(board[bubble.y][bubble.x + 1] !== undefined && board[bubble.y][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x + 1]);
+          }
+          if(board[bubble.y][bubble.x - 1] !== undefined && board[bubble.y][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x - 1]);
+          }
+          if(board[bubble.y + 1][bubble.x + 1] !== undefined && board[bubble.y + 1][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+          }
+      } else {
+        if (board[bubble.y - 1][bubble.x - 1] !== undefined && board[bubble.y - 1][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y - 1][bubble.x - 1]);
+        }
+        if (board[bubble.y - 1][bubble.x] !== undefined && board[bubble.y - 1][bubble.x].state === "full") {
+          neighbors.push(board[bubble.y - 1][bubble.x]);
+        }
+        if(board[bubble.y][bubble.x - 1] !== undefined && board[bubble.y][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x - 1]);
+        }
+        if(board[bubble.y][bubble.x + 1] !== undefined && board[bubble.y][bubble.x + 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x + 1]);
+        }
+        if(board[bubble.y + 1][bubble.x - 1] !== undefined && board[bubble.y + 1][bubble.x - 1].state === "full") {
+          neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+        }
+      }
     }
-    if (n1 !== undefined && n1.state === "full") {
-      neighbors.push(n1);
-    }
-    if(n4 !== undefined && n4.state === "full") {
-      neighbors.push(n4);
-    }
-    if(n3 !== undefined && n3.state === "full") {
-      neighbors.push(n3);
-    }
-    if(n5 !== undefined && n5.state === "full") {
-      neighbors.push(n5);
-    }
-    if(n8 !== undefined && n8.state === "full") {
-      neighbors.push(n8);
-    }
+  if(board[bubble.y + 1][bubble.x] !== undefined && board[bubble.y + 1][bubble.x].state === "full") {
+    neighbors.push(board[bubble.y + 1][bubble.x]);
   }
   return neighbors;
 }
@@ -561,20 +618,6 @@ clusters(bubble) {
     let current = queue.shift();
     let children = this.findNeighbors(current, this.board.grid);
     children.forEach(child => {
-    //   if (child.color !== color) {
-    //
-    //   let parents = this.findNeighbors(child, this.board.grid);
-    //
-    //   let same = true;
-    //   parents.forEach(parent => {
-    //     if (parent.color !== color) {
-    //       same = false;
-    //     }
-    //   });
-    //   if (same) {
-    //     lone.push(child);
-    //   }
-    // } else if
     if (child.color === color){
         if (!queue.includes(child) && !checked.includes(child)) {
           queue.push(child);
@@ -591,32 +634,42 @@ clusters(bubble) {
       bubble.state = "empty";
     });
   }
-  // lone.forEach(bubble => {
-  //   bubble.color = null;
-  //   bubble.state = "empty";
-  // });
 }
 
-bfsNeighbors(bubble, board) {
-  let neighbors = [];
-  const n1 = board[bubble.y + 1][bubble.x];
-  const n2 = board[bubble.y + 1][bubble.x + 1];
-  const n3 = board[bubble.y + 1][bubble.x - 1];
-
-  if (bubble.shifted) {
-    if (n2.state === "full") {
-      neighbors.push(n1);
-    }
-  } else {
-    if (n3.state === "full") {
-      neighbors.push(n2);
-    }
-  }
-
-  if (n1.state === "full") {
-    neighbors.push(n1);
-  }
-}
+// bfsNeighbors(bubble, board) {
+//   let neighbors = [];
+//   const n1 = board[bubble.y + 1][bubble.x];
+//   const n2 = board[bubble.y + 1][bubble.x + 1];
+//   const n3 = board[bubble.y + 1][bubble.x - 1];
+//   const n4 = board[bubble.y][bubble.x + 1];
+//   const n5 = board[bubble.y][bubble.x - 1];
+//   if (bubble.state === "full") {
+//     if (bubble.shifted) {
+//       if (bubble.x < 14) {
+//         if (n2.state === "full") {
+//           neighbors.push(n2);
+//         }
+//         if (n4.state === "full") {
+//           neighbors.push(n4);
+//         }
+//       }
+//     } else {
+//         if (bubble.x > 0) {
+//           if (n3.state === "full") {
+//             neighbors.push(n3);
+//         }
+//         if (n5.state === "full") {
+//           neighbors.push(n5);
+//         }
+//       }
+//     }
+//
+//     if (n1.state === "full") {
+//       neighbors.push(n1);
+//     }
+//   }
+//   return neighbors;
+// }
 
 won(){
   this.board.grid.forEach(row => {
@@ -633,23 +686,33 @@ gameOver() {
 }
 
 findFloaters(bubble, board) {
+  let top = board[0];
   let checked = [];
-  let queue = [bubble];
-  while(queue.length >= 1) {
-    let current = queue.shift();
-    let children = this.findNeighbors(current, board);
-    children.forEach(child => {
-      if (!queue.includes(child) && !checked.includes(child))
-      queue.push(child);
+  top.forEach( bubble => {
+    let queue = [bubble];
+    while(queue.length > 0) {
+      let current = queue.shift();
+      checked.push(current);
+      let children = this.findNeighbors(current, board);
+        children.forEach(child => {
+          if (!queue.includes(child) && !checked.includes(child))
+          queue.push(child);
+          checked.push(child);
+        });
+    }
+  });
+  board.forEach(row => {
+    row.forEach(bubble => {
+      if (!checked.includes(bubble)) {
+      bubble.color = null;
+      bubble.state = "empty";
+      }
     });
-    if (!checked.includes(current));
-    checked.push(current);
-  }
+  });
   return checked;
 }
 
 }
-
 
 
 /* harmony default export */ __webpack_exports__["a"] = (Game);
