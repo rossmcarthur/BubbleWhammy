@@ -194,10 +194,10 @@ class Board {
 
   populate() {
     this.grid.unshift(this.createRow());
-    for(let i = 0; i < 2; i++) {
+    for(let i = 0; i < 6; i++) {
       this.shiftRow();
     }
-    for(let l = 3; l < 18; l++) {
+    for(let l = 7; l < 18; l++) {
       let emptyRow = [];
       for(let j = 0; j < 15; j++) {
         let bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](j, l);
@@ -490,9 +490,10 @@ findClosestSpace(bubble, board, freeSpace) {
       distance = dist;
     }
   });
+  if(closest.x && closest.y) {
   board[closest.y][closest.x] = bubble;
   bubble.x = closest.x;
-    if (closest.y > 0 && board[closest.y - 1][closest.x].shifted === false) { // CHANGE TO ACCOUNT FOR BUBBLES WITH NONE ABOVE
+    if (closest.y > 0 && board[closest.y - 1][closest.x].shifted === false) {
       bubble.shifted = true;
     }
   bubble.gridPos.x = closest.x;
@@ -505,6 +506,7 @@ findClosestSpace(bubble, board, freeSpace) {
   this.player.bubble = nextBubble;
   this.player.nextBubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
   this.turns += 1;
+}
 
 }
 

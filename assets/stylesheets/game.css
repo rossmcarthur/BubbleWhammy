@@ -1,0 +1,44 @@
+html {
+  height: 100%;
+  background-image: url("../space.jpeg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  font-family: 'Press Start 2P', cursive;
+
+}
+.background {
+  display: flex;
+  flex-flow: column;
+  position: relative;
+  height: 100%;
+}
+
+.title {
+  text-align: center;
+  color: white;
+}
+
+.created {
+  text-align: center;
+  color: white;
+}
+
+.canvas {
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
+}
+
+#rules {
+
+}
+
+#scoreboard {
+
+}
+
+#gameBoard {
+  width: 550px;
+  height: 700px;
+  align-self: center;
+}
