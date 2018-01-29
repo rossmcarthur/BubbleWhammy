@@ -4,17 +4,33 @@
     <meta charset="utf-8">
     <title>Bubble Whammy</title>
     <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <script src="https://use.fontawesome.com/595b8d2415.js"></script>
     <link rel="stylesheet" type="text/css" href="./assets/stylesheets/game.css">
   </head>
   <body>
     <div class="background">
       <h1 class="title">Bubble Whammy</h1>
       <div class="canvas">
-        <canvas id="scoreboard" height="200" width="200"></canvas>
         <canvas id="gameBoard" height="660" width="550"></canvas>
-        <canvas id="rules" height="200" width="200"></canvas>
+        <ul class="rules"> <p class="rules-title">Rules</p>
+          <br>
+          <li>Use the mouse to aim your bubbles</li>
+          <br>
+          <li>Click to shoot bubble</li>
+          <br>
+          <li>Connect three or more bubbles of the same color to make them disappear</li>
+          <br>
+          <li>The game ends when a bubble reaches the bottom of the board or all bubbles disappear</li>
+        </ul>
       </div>
+
+
       <h2 class="created">Created By: Ross McArthur</h2>
+      <div class="links">
+        <link class="github"><i class="fa fa-github" aria-hidden="true"></i></link>
+        <link class="linkedin"><i class="fa fa-linkedin" aria-hidden="true"></i></link>
+        <link class="website"><i class="fa fa-globe" aria-hidden="true"></i></link>
+      </div>
     </div>
       <script type="application/javascript" src="bundle.js"></script>
 

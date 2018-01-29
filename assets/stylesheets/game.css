@@ -1,6 +1,6 @@
 html {
   height: 100%;
-  background-image: url("../space.jpeg");
+  background-image: url("../bubble.jpeg");
   background-repeat: no-repeat;
   background-size: cover;
   font-family: 'Press Start 2P', cursive;
@@ -9,8 +9,9 @@ html {
 .background {
   display: flex;
   flex-flow: column;
-  position: relative;
   height: 100%;
+  position: relative;
+  align-items: center;
 }
 
 .title {
@@ -24,21 +25,35 @@ html {
 }
 
 .canvas {
-  display: flex;
-  flex-flow: row;
-  justify-content: space-between;
+  position: relative;
+  display: grid;
+  justify-content: center;
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
-#rules {
+ .links {
+   display: flex;
+   justify-content: space-between;
+   flex-flow: row;
+   color: white;
+   width: 550px;
+   align-self: center;
+   font-size: 40px;
+ }
 
+.rules-title {
+  text-align: center;
+  text-decoration: underline;
 }
 
-#scoreboard {
-
+.rules {
+  color: white;
+  list-style: none;
+  grid-column-start: 3;
 }
 
 #gameBoard {
-  width: 550px;
-  height: 700px;
-  align-self: center;
+  display: inline-block;
+  grid-column-start: 2;
+  border-radius: 5px;
 }

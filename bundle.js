@@ -250,19 +250,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
+
 let newBoard = new __WEBPACK_IMPORTED_MODULE_0__board__["a" /* default */]();
 newBoard.populate();
 
 class Game {
-  constructor(ctx, canv, board = newBoard) {
+  constructor(ctx, canv, scoreboard, scorectx, board = newBoard) {
     this.ctx = ctx;
     this.canv = canv;
+    this.scoreboard = scoreboard;
+    this.scorectx = scorectx;
     this.board = board;
     this.player = new __WEBPACK_IMPORTED_MODULE_1__player__["a" /* default */]('Ross', board);
     this.handleMove = this.handleMove.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.state = 'ready';
     this.turns = 0;
+    this.score = 0;
   }
 
   handleMove(e) {
@@ -332,13 +336,16 @@ class Game {
   animate() {
     this.ctx.clearRect(0, 0, 550, 700);
     this.ctx.fillStyle = 'black';
-    this.ctx.fillRect(0, 0, 1000, 1000);
+    this.ctx.fillRect(0, 0, 550, 700);
     if (this.turns < 50 && this.turns > 0) {
       if (this.turns % 10 === 0) {
         this.board.shiftRow();
         this.turns = 0;
       }
     }
+    this.ctx.font = "17px Arial";
+    this.ctx.fillStyle = "white";
+    this.ctx.fillText(`Score: ${this.score}`, 440, 650);
     this.renderBubbles();
     this.player.draw(this.ctx);
 
@@ -357,7 +364,15 @@ class Game {
       });
     }
     if (this.gameOver()) {
-      this.ctx.clearRect(0, 0, 550, 700);
+      const gameover = new Image();
+      gameover.src = './assets/gameover.png';
+
+      this.ctx.beginPath();
+      this.ctx.rect(0, 0, 550, 700);
+      this.ctx.fillStyle = 'rgba(0, 0, 0, .7)';
+      this.ctx.fill();
+      this.ctx.closePath();
+      this.ctx.drawImage(gameover, this.canv.width/2, 200, 200, 200);
     }
     requestAnimationFrame(this.animate.bind(this));
   }
@@ -490,8 +505,10 @@ findClosestSpace(bubble, board, freeSpace) {
       distance = dist;
     }
   });
-  if(closest.x && closest.y) {
+  if(closest) {
+    const sound = new Audio("./assets/snap.mp3");
   board[closest.y][closest.x] = bubble;
+  sound.play();
   bubble.x = closest.x;
     if (closest.y > 0 && board[closest.y - 1][closest.x].shifted === false) {
       bubble.shifted = true;
@@ -638,6 +655,7 @@ clusters(bubble) {
   }
   if (checked.length >= 3) {
     checked.forEach(bubble => {
+      this.score += 200;
       bubble.color = null;
       bubble.state = "empty";
     });
@@ -741,6 +759,7 @@ class Player {
     this.angle = 0;
     this.bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
     this.nextBubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
+    this.score = 0;
   }
 
   draw(ctx) {
