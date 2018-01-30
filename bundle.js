@@ -255,15 +255,14 @@ let newBoard = new __WEBPACK_IMPORTED_MODULE_0__board__["a" /* default */]();
 newBoard.populate();
 
 class Game {
-  constructor(ctx, canv, scoreboard, scorectx, board = newBoard) {
+  constructor(ctx, canv, board = newBoard) {
     this.ctx = ctx;
     this.canv = canv;
-    this.scoreboard = scoreboard;
-    this.scorectx = scorectx;
     this.board = board;
-    this.player = new __WEBPACK_IMPORTED_MODULE_1__player__["a" /* default */]('Ross', board);
+    this.player = new __WEBPACK_IMPORTED_MODULE_1__player__["a" /* default */](board);
     this.handleMove = this.handleMove.bind(this);
     this.handleClick = this.handleClick.bind(this);
+    this.handleGameOver = this.handleGameOver.bind(this);
     this.state = 'ready';
     this.turns = 0;
     this.score = 0;
@@ -293,9 +292,23 @@ class Game {
     this.player.angle = mouseAngle;
   }
 
+
+  handleGameOver(e) {
+    if (this.state === 'gameover') {
+      this.state = 'ready';
+      this.turns = 0;
+      this.score = 0;
+      this.board = new __WEBPACK_IMPORTED_MODULE_0__board__["a" /* default */]();
+      this.board.populate();
+      this.player.board = this.board;
+    }
+
+  }
+
   start() {
     this.canv.addEventListener('mousemove', this.handleMove);
     this.canv.addEventListener('mousedown', this.handleClick);
+    this.canv.addEventListener('mousedown', this.handleGameOver);
     requestAnimationFrame(this.animate.bind(this));
   }
 
@@ -372,15 +385,18 @@ class Game {
       this.ctx.fillStyle = 'rgba(0, 0, 0, .7)';
       this.ctx.fill();
       this.ctx.closePath();
-      this.ctx.drawImage(gameover, this.canv.width/2, 200, 200, 200);
+      this.ctx.drawImage(gameover, 170, 200, 200, 200);
     }
     requestAnimationFrame(this.animate.bind(this));
   }
 
   handleClick(e) {
-    this.state = "shooting";
-    this.player.bubble.loaded = true;
-    this.setAngle();
+    if (this.state === 'ready') {
+      this.state = 'shooting';
+      this.player.bubble.loaded = true;
+      this.setAngle();
+      this.state = 'ready';
+    }
   }
 
   setAngle() {
@@ -489,6 +505,7 @@ return freeSpace;
 gameOver() {
   for(let i = 0; i < 15; i++) {
     if (this.board.grid[17][i].state === "full") {
+      this.state = 'gameover';
       return true;
     }
   }
@@ -750,7 +767,7 @@ findFloaters(bubble, board) {
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
 class Player {
-  constructor(name, board) {
+  constructor(board) {
     this.name = name;
     this.board = board;
     this.score = 0;
