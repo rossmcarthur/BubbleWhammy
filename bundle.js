@@ -250,7 +250,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 const colors = ["red", "blue", "green", "yellow", "purple", "white"];
 
-
 let newBoard = new __WEBPACK_IMPORTED_MODULE_0__board__["a" /* default */]();
 newBoard.populate();
 
@@ -269,16 +268,13 @@ class Game {
   }
 
   handleMove(e) {
-    let mousePos = this.getMousePos(this.canv, e);
+    const mousePos = this.getMousePos(this.canv, e);
     let mouseAngle = this.radiansToDegrees(Math.atan2((this.player.y) - mousePos.y, mousePos.x - (this.player.x)));
-
     if (mouseAngle < 0) {
-        mouseAngle = 180 + (180 + mouseangle);
+      mouseAngle = 180 + (180 + mouseangle);
     }
-
-    let lbound = 8;
-    let ubound = 172;
-
+    let lbound = 20;
+    let ubound = 160;
     if (mouseAngle > 90 && mouseAngle < 270) {
       if (mouseAngle > ubound) {
         mouseAngle = ubound;
@@ -288,7 +284,6 @@ class Game {
         mouseAngle = lbound;
       }
     }
-
     this.player.angle = mouseAngle;
   }
 
@@ -302,7 +297,6 @@ class Game {
       this.board.populate();
       this.player.board = this.board;
     }
-
   }
 
   start() {
@@ -361,16 +355,15 @@ class Game {
     this.ctx.fillText(`Score: ${this.score}`, 440, 650);
     this.renderBubbles();
     this.player.draw(this.ctx);
-
     let bubble = this.player.bubble;
-    let board = this.player.board.grid;
+    const board = this.player.board.grid;
     this.renderPlayerAngle(this.ctx);
     this.player.bubble.draw(this.ctx);
     this.player.nextBubble.draw(this.ctx);
-    let cols = this.detectCollision(bubble, board);
+    const cols = this.detectCollision(bubble, board);
     if (cols.length >= 1) {
-      let closestCollision = this.findClosestCollision(cols);
-      let freeSpace = this.findFreeSpace(board, closestCollision);
+      const closestCollision = this.findClosestCollision(cols);
+      const freeSpace = this.findFreeSpace(board, closestCollision);
       this.findClosestSpace(bubble, board, freeSpace);
       board[0].forEach(bubble => {
       this.findFloaters(bubble, board);
@@ -379,13 +372,14 @@ class Game {
     if (this.gameOver()) {
       const gameover = new Image();
       gameover.src = './assets/gameover.png';
-
       this.ctx.beginPath();
       this.ctx.rect(0, 0, 550, 700);
       this.ctx.fillStyle = 'rgba(0, 0, 0, .7)';
       this.ctx.fill();
       this.ctx.closePath();
-      this.ctx.drawImage(gameover, 170, 200, 200, 200);
+      this.ctx.drawImage(gameover, 170, 100, 200, 200);
+      this.ctx.fillStyle = "white";
+      this.ctx.fillText("Click to restart game...", 180, 500 );
     }
     requestAnimationFrame(this.animate.bind(this));
   }
@@ -415,18 +409,18 @@ class Game {
     this.findClosestSpace(bubble, freeSpace);
 }
 
-detectCollision(bubble, board) {
-let collisions = [];
-  if (bubble.loaded) {
-    for(let i = 0; i < board.length; i++) {
-      let row = board[i];
-      for(let j = 0; j < row.length; j++) {
-        let gridBubble = board[i][j];
-        if (gridBubble.state === "full") {
-          if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 35 >= bubble.pos.y) {
-            if (gridBubble.shifted) {
-              gridBubble.pos.x -= 16.65;
-            }
+  detectCollision(bubble, board) {
+  let collisions = [];
+    if (bubble.loaded) {
+      for(let i = 0; i < board.length; i++) {
+        let row = board[i];
+        for(let j = 0; j < row.length; j++) {
+          let gridBubble = board[i][j];
+          if (gridBubble.state === "full") {
+            if (bubble.pos.y > gridBubble.pos.y && gridBubble.pos.y + 35 >= bubble.pos.y) {
+              // if (gridBubble.shifted) {
+              //   gridBubble.pos.x += 16.65;
+              // }
               if (gridBubble.pos.x >= bubble.pos.x) {
                 if (gridBubble.pos.x - 30 <= bubble.pos.x) {
                   collisions.push({
@@ -448,307 +442,311 @@ let collisions = [];
                 }
               }
 
+          }
         }
       }
     }
+    return collisions;
   }
-  return collisions;
-}
 
-findClosestCollision(collisions) {
-  let closestBubble = null;
-  let distance = null;
-  for(let i = 0; i < collisions.length; i++) {
-    let colBubble = collisions[i];
-    if (closestBubble === null || colBubble.xAbs < distance) {
-      closestBubble = colBubble;
-      distance = colBubble.xAbs;
-    }
-
-  }
-  let collisionBubble =  {
-    closest: closestBubble,
-    distance: distance
-  };
-  return collisionBubble;
-}
-
-findFreeSpace(board, collisionBubble) {
-  let freeSpace = [];
-
-  if (!collisionBubble.closest.bubble.shifted) {
-    if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1] !== undefined &&
-      board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
-      freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x - 1]);
-    }
-  } else {
-    if(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1] !== undefined &&
-      board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1].state === "empty"){
-      freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x + 1]);
-    }
-  }
-  if (board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1] !== undefined &&
-    board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1].state === "empty") {
-    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x - 1]);
-  }
-  if (board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x + 1] !== undefined &&
-    board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x + 1].state === "empty") {
-    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y][collisionBubble.closest.bubble.gridPos.x + 1]);
-  }
-  if (board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x] !== undefined &&
-    board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x].state === "empty") {
-    freeSpace.push(board[collisionBubble.closest.bubble.gridPos.y + 1][collisionBubble.closest.bubble.gridPos.x]);
-  }
-return freeSpace;
-}
-
-gameOver() {
-  for(let i = 0; i < 15; i++) {
-    if (this.board.grid[17][i].state === "full") {
-      this.state = 'gameover';
-      return true;
-    }
-  }
-  return false;
-}
-
-findClosestSpace(bubble, board, freeSpace) {
-  let closest = null;
-  let distance = null;
-  freeSpace.forEach(space => {
-    let dist = Math.abs((space.pos.x) - bubble.pos.x);
-    if (closest === null || dist < distance) {
-      closest = space;
-      distance = dist;
-    }
-  });
-  if(closest) {
-    const sound = new Audio("./assets/snap.mp3");
-  board[closest.y][closest.x] = bubble;
-  sound.play();
-  bubble.x = closest.x;
-    if (closest.y > 0 && board[closest.y - 1][closest.x].shifted === false) {
-      bubble.shifted = true;
-    }
-  bubble.gridPos.x = closest.x;
-  bubble.y = closest.y;
-  bubble.gridPos.y = closest.y;
-  this.clusters(bubble);
-  bubble.loaded = false;
-  let nextBubble = this.player.nextBubble;
-  nextBubble.x = 7;
-  this.player.bubble = nextBubble;
-  this.player.nextBubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
-  this.turns += 1;
-}
-
-}
-
-findNeighbors(bubble, board) {
-  let neighbors = [];
-    if (bubble.x === 0 && bubble.y === 0) {
-      if(bubble.shifted) {
-        if(board[bubble.y + 1][bubble.x + 1].state === "full") {
-          neighbors.push(board[bubble.y + 1][bubble.x + 1]);
-        }
+  findClosestCollision(collisions) {
+    let closestBubble = null;
+    let distance = null;
+    for(let i = 0; i < collisions.length; i++) {
+      const colBubble = collisions[i];
+      if (closestBubble === null || colBubble.xAbs < distance) {
+        closestBubble = colBubble;
+        distance = colBubble.xAbs;
       }
-        if(board[bubble.y][bubble.x + 1].state === "full") {
-          neighbors.push(board[bubble.y][bubble.x + 1]);
-        }
-    } else if (bubble.x === 14 && bubble.y === 0) {
-      if (!bubble.shifted) {
-        if(board[bubble.y + 1][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y + 1][bubble.x - 1]);
-        }
+    }
+    let collisionBubble =  {
+      closest: closestBubble,
+      distance: distance
+    };
+    return collisionBubble;
+  }
+
+  findFreeSpace(board, collisionBubble) {
+    let freeSpace = [];
+
+    if (!collisionBubble.closest.bubble.shifted) {
+      if(board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x - 1] !== undefined &&
+        board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x - 1].state === "empty") {
+        freeSpace.push(board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x - 1]);
       }
-        if(board[bubble.y][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y][bubble.x - 1]);
+    }
+     if (collisionBubble.closest.bubble.shifted){
+      if(board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x + 1] !== undefined &&
+        board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x + 1].state === "empty"){
+        freeSpace.push(board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x + 1]);
+      }
+    }
+    if (board[collisionBubble.closest.bubble.y][collisionBubble.closest.bubble.x - 1] !== undefined &&
+      board[collisionBubble.closest.bubble.y][collisionBubble.closest.bubble.x - 1].state === "empty") {
+      freeSpace.push(board[collisionBubble.closest.bubble.y][collisionBubble.closest.bubble.x - 1]);
+    }
+    if (board[collisionBubble.closest.bubble.y][collisionBubble.closest.bubble.x + 1] !== undefined &&
+      board[collisionBubble.closest.bubble.y][collisionBubble.closest.bubble.x + 1].state === "empty") {
+      freeSpace.push(board[collisionBubble.closest.bubble.y][collisionBubble.closest.bubble.x + 1]);
+    }
+    if (board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x] !== undefined &&
+      board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x].state === "empty") {
+      freeSpace.push(board[collisionBubble.closest.bubble.y + 1][collisionBubble.closest.bubble.x]);
+    }
+  return freeSpace;
+  }
+
+  gameOver() {
+    for(let i = 0; i < 15; i++) {
+      if (this.board.grid[17][i].state === "full") {
+        this.state = 'gameover';
+        return true;
+      }
+    }
+    return false;
+  }
+
+  findClosestSpace(bubble, board, freeSpace) {
+    let closest = null;
+    let distance = null;
+    freeSpace.forEach(space => {
+      const dist = Math.abs((space.pos.x) - (bubble.pos.x));
+      if (closest === null || dist < distance) {
+        closest = space;
+        distance = dist;
+      }
+    });
+    if(closest) {
+    board[closest.y][closest.x] = bubble;
+    bubble.x = closest.x;
+      if (closest.y > 0 && board[closest.y - 1][closest.x].shifted === false) {
+        bubble.shifted = true;
+      }
+    bubble.gridPos.x = closest.x;
+    bubble.y = closest.y;
+    bubble.gridPos.y = closest.y;
+    this.clusters(bubble);
+    bubble.loaded = false;
+    let nextBubble = this.player.nextBubble;
+    nextBubble.x = 7;
+    this.player.bubble = nextBubble;
+    this.player.nextBubble = new __WEBPACK_IMPORTED_MODULE_2__bubble__["a" /* default */](5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
+    this.turns += 1;
+    }
+  }
+
+  findNeighbors(bubble, board) {
+    let neighbors = [];
+      if (bubble.x === 0 && bubble.y === 0) {
+        if(bubble.shifted) {
+          if(board[bubble.y + 1][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+          }
         }
-    } else if (bubble.y === 0) {
-      if (bubble.shifted) {
-        if(board[bubble.y + 1][bubble.x + 1].state === "full") {
-          neighbors.push(board[bubble.y + 1][bubble.x + 1]);
-        }
-      } else {
+          if(board[bubble.y][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x + 1]);
+          }
+      } else if (bubble.x === 14 && bubble.y === 0) {
+        if (!bubble.shifted) {
           if(board[bubble.y + 1][bubble.x - 1].state === "full") {
             neighbors.push(board[bubble.y + 1][bubble.x - 1]);
           }
         }
-        if(board[bubble.y][bubble.x + 1].state === "full") {
-          neighbors.push(board[bubble.y][bubble.x + 1]);
+          if(board[bubble.y][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x - 1]);
+          }
+      } else if (bubble.y === 0) {
+        if (bubble.shifted) {
+          if(board[bubble.y + 1][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+          }
+        } else {
+            if(board[bubble.y + 1][bubble.x - 1].state === "full") {
+              neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+            }
+          }
+          if(board[bubble.y][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x + 1]);
+          }
+          if(board[bubble.y][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x - 1]);
+          }
+      } else if (bubble.x === 0) {
+        if (bubble.shifted) {
+          if (board[bubble.y - 1][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y - 1][bubble.x + 1]);
+          }
+          if(board[bubble.y + 1][bubble.x + 1].state === "full") {
+                neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+          }
         }
-        if(board[bubble.y][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y][bubble.x - 1]);
-        }
-    } else if (bubble.x === 0) {
-      if (bubble.shifted) {
-        if (board[bubble.y - 1][bubble.x + 1].state === "full") {
-          neighbors.push(board[bubble.y - 1][bubble.x + 1]);
-        }
-        if(board[bubble.y + 1][bubble.x + 1].state === "full") {
-              neighbors.push(board[bubble.y + 1][bubble.x + 1]);
-        }
-      }
-      if (board[bubble.y - 1][bubble.x].state === "full") {
-        neighbors.push(board[bubble.y - 1][bubble.x]);
-      }
-      if(board[bubble.y][bubble.x + 1].state === "full") {
-        neighbors.push(board[bubble.y][bubble.x + 1]);
-      }
-    } else if (bubble.x === 14) {
-      if (!bubble.shifted) {
-        if(board[bubble.y + 1][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y + 1][bubble.x - 1]);
-        }
-        if (board[bubble.y - 1][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y - 1][bubble.x - 1]);
-        }
-      }
         if (board[bubble.y - 1][bubble.x].state === "full") {
           neighbors.push(board[bubble.y - 1][bubble.x]);
         }
-        if(board[bubble.y][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y][bubble.x - 1]);
+        if(board[bubble.y][bubble.x + 1].state === "full") {
+          neighbors.push(board[bubble.y][bubble.x + 1]);
         }
-    } else {
-        if (bubble.shifted) {
-          if (board[bubble.y - 1][bubble.x] !== undefined && board[bubble.y - 1][bubble.x].state === "full") {
+      } else if (bubble.x === 14) {
+        if (!bubble.shifted) {
+          if(board[bubble.y + 1][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+          }
+          if (board[bubble.y - 1][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y - 1][bubble.x - 1]);
+          }
+        }
+          if (board[bubble.y - 1][bubble.x].state === "full") {
             neighbors.push(board[bubble.y - 1][bubble.x]);
           }
-          if (board[bubble.y - 1][bubble.x + 1] !== undefined && board[bubble.y - 1][bubble.x + 1].state === "full") {
-            neighbors.push(board[bubble.y - 1][bubble.x + 1]);
+          if(board[bubble.y][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x - 1]);
           }
-          if(board[bubble.y][bubble.x + 1] !== undefined && board[bubble.y][bubble.x + 1].state === "full") {
-            neighbors.push(board[bubble.y][bubble.x + 1]);
+      } else {
+          if (bubble.shifted) {
+            if (board[bubble.y - 1][bubble.x] !== undefined && board[bubble.y - 1][bubble.x].state === "full") {
+              neighbors.push(board[bubble.y - 1][bubble.x]);
+            }
+            if (board[bubble.y - 1][bubble.x + 1] !== undefined && board[bubble.y - 1][bubble.x + 1].state === "full") {
+              neighbors.push(board[bubble.y - 1][bubble.x + 1]);
+            }
+            if(board[bubble.y][bubble.x + 1] !== undefined && board[bubble.y][bubble.x + 1].state === "full") {
+              neighbors.push(board[bubble.y][bubble.x + 1]);
+            }
+            if(board[bubble.y][bubble.x - 1] !== undefined && board[bubble.y][bubble.x - 1].state === "full") {
+              neighbors.push(board[bubble.y][bubble.x - 1]);
+            }
+            if(board[bubble.y + 1][bubble.x + 1] !== undefined && board[bubble.y + 1][bubble.x + 1].state === "full") {
+              neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+            }
+        } else {
+          if (board[bubble.y - 1][bubble.x - 1] !== undefined && board[bubble.y - 1][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y - 1][bubble.x - 1]);
+          }
+          if (board[bubble.y - 1][bubble.x] !== undefined && board[bubble.y - 1][bubble.x].state === "full") {
+            neighbors.push(board[bubble.y - 1][bubble.x]);
           }
           if(board[bubble.y][bubble.x - 1] !== undefined && board[bubble.y][bubble.x - 1].state === "full") {
             neighbors.push(board[bubble.y][bubble.x - 1]);
           }
-          if(board[bubble.y + 1][bubble.x + 1] !== undefined && board[bubble.y + 1][bubble.x + 1].state === "full") {
-            neighbors.push(board[bubble.y + 1][bubble.x + 1]);
+          if(board[bubble.y][bubble.x + 1] !== undefined && board[bubble.y][bubble.x + 1].state === "full") {
+            neighbors.push(board[bubble.y][bubble.x + 1]);
           }
-      } else {
-        if (board[bubble.y - 1][bubble.x - 1] !== undefined && board[bubble.y - 1][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y - 1][bubble.x - 1]);
-        }
-        if (board[bubble.y - 1][bubble.x] !== undefined && board[bubble.y - 1][bubble.x].state === "full") {
-          neighbors.push(board[bubble.y - 1][bubble.x]);
-        }
-        if(board[bubble.y][bubble.x - 1] !== undefined && board[bubble.y][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y][bubble.x - 1]);
-        }
-        if(board[bubble.y][bubble.x + 1] !== undefined && board[bubble.y][bubble.x + 1].state === "full") {
-          neighbors.push(board[bubble.y][bubble.x + 1]);
-        }
-        if(board[bubble.y + 1][bubble.x - 1] !== undefined && board[bubble.y + 1][bubble.x - 1].state === "full") {
-          neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+          if(board[bubble.y + 1][bubble.x - 1] !== undefined && board[bubble.y + 1][bubble.x - 1].state === "full") {
+            neighbors.push(board[bubble.y + 1][bubble.x - 1]);
+          }
         }
       }
+    if(board[bubble.y + 1][bubble.x] !== undefined && board[bubble.y + 1][bubble.x].state === "full") {
+      neighbors.push(board[bubble.y + 1][bubble.x]);
     }
-  if(board[bubble.y + 1][bubble.x] !== undefined && board[bubble.y + 1][bubble.x].state === "full") {
-    neighbors.push(board[bubble.y + 1][bubble.x]);
+    return neighbors;
   }
-  return neighbors;
-}
 
-clusters(bubble) {
-  let color = bubble.color;
-  let checked = [];
-  let queue = [bubble];
-  let lone = [];
-  while (queue.length >= 1) {
-    let current = queue.shift();
-    let children = this.findNeighbors(current, this.board.grid);
-    children.forEach(child => {
-    if (child.color === color){
-        if (!queue.includes(child) && !checked.includes(child)) {
-          queue.push(child);
-        }
-      }
-    });
-    if (!checked.includes(current)) {
-      checked.push(current);
-    }
-  }
-  if (checked.length >= 3) {
-    checked.forEach(bubble => {
-      this.score += 200;
-      bubble.color = null;
-      bubble.state = "empty";
-    });
-  }
-}
-
-bfsNeighbors(bubble, board) {
-  let neighbors = [];
-  const n1 = board[bubble.y + 1][bubble.x];
-  const n2 = board[bubble.y + 1][bubble.x + 1];
-  const n3 = board[bubble.y + 1][bubble.x - 1];
-  const n4 = board[bubble.y][bubble.x + 1];
-  const n5 = board[bubble.y][bubble.x - 1];
-  if (bubble.state === "full") {
-    if (bubble.shifted) {
-      if (bubble.x < 14) {
-        if (n2.state === "full") {
-          neighbors.push(n2);
-        }
-        if (n4.state === "full") {
-          neighbors.push(n4);
-        }
-      }
-    } else {
-        if (bubble.x > 0) {
-          if (n3.state === "full") {
-            neighbors.push(n3);
-        }
-        if (n5.state === "full") {
-          neighbors.push(n5);
-        }
-      }
-    }
-
-    if (n1.state === "full") {
-      neighbors.push(n1);
-    }
-  }
-  return neighbors;
-}
-
-won(){
-  this.board.grid.forEach(row => {
-    row.every(node => {
-      return node.state === "empty";
-    });
-  });
-}
-
-
-findFloaters(bubble, board) {
-  let top = board[0];
-  let checked = [];
-  top.forEach( bubble => {
+  clusters(bubble) {
+    const snap = new Audio("./assets/snap.mp3");
+    const pop = new Audio("./assets/pop.mp3");
+    const color = bubble.color;
+    let checked = [];
     let queue = [bubble];
-    while(queue.length > 0) {
+    while (queue.length >= 1) {
       let current = queue.shift();
-      checked.push(current);
-      let children = this.bfsNeighbors(current, board);
+      let children = this.findNeighbors(current, this.board.grid);
+      children.forEach(child => {
+      if (child.color === color){
+          if (!queue.includes(child) && !checked.includes(child)) {
+            queue.push(child);
+          }
+        }
+      });
+      if (!checked.includes(current)) {
+        checked.push(current);
+      }
+    }
+    if (checked.length >= 3) {
+      pop.play();
+      checked.forEach(bubble => {
+        this.score += 200;
+        bubble.color = null;
+        bubble.state = "empty";
+      });
+    } else {
+        snap.play();
+    }
+  }
+
+  bfsNeighbors(bubble, board) {
+    let neighbors = [];
+    const n1 = board[bubble.y + 1][bubble.x];
+    const n2 = board[bubble.y + 1][bubble.x + 1];
+    const n3 = board[bubble.y + 1][bubble.x - 1];
+    const n4 = board[bubble.y][bubble.x + 1];
+    const n5 = board[bubble.y][bubble.x - 1];
+    if (bubble.state === "full") {
+      if (bubble.shifted) {
+        if (bubble.x < 14) {
+          if (n2.state === "full") {
+            neighbors.push(n2);
+          }
+          if (n4.state === "full") {
+            neighbors.push(n4);
+          }
+        }
+      } else {
+          if (bubble.x > 0) {
+            if (n3.state === "full") {
+              neighbors.push(n3);
+          }
+          if (n5.state === "full") {
+            neighbors.push(n5);
+          }
+        }
+      }
+      if (n1.state === "full") {
+        neighbors.push(n1);
+      }
+    }
+    return neighbors;
+  }
+
+  won(){
+    this.board.grid.forEach(row => {
+      row.every(node => {
+        return node.state === "empty";
+      });
+    });
+  }
+
+  findFloaters(bubble, board) {
+    const top = board[0];
+    let checked = [];
+    top.forEach( bubble => {
+      let queue = [bubble];
+      while(queue.length > 0) {
+        const current = queue.shift();
+        checked.push(current);
+        let children;
+        if (top.includes(current)) {
+          children = this.bfsNeighbors(current, board);
+        } else {
+          children = this.findNeighbors(current, board);
+        }
         children.forEach(child => {
           if (!queue.includes(child) && !checked.includes(child))
           queue.push(child);
           checked.push(child);
         });
-    }
-  });
-  board.forEach(row => {
-    row.forEach(bubble => {
-      if (!checked.includes(bubble)) {
-      bubble.color = null;
-      bubble.state = "empty";
       }
     });
-  });
-  return checked;
-}
+    board.forEach(row => {
+      row.forEach(bubble => {
+        if (!checked.includes(bubble)) {
+        bubble.color = null;
+        bubble.state = "empty";
+        }
+      });
+    });
+    return checked;
+  }
 
 }
 
@@ -773,7 +771,7 @@ class Player {
     this.score = 0;
     this.x = 266.4;
     this.y = 675;
-    this.angle = 0;
+    this.angle = 90;
     this.bubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](7, 18, colors[Math.floor(Math.random()*colors.length)], false, {xPos: 266.4, yPos: 632.6999999999999}, "full");
     this.nextBubble = new __WEBPACK_IMPORTED_MODULE_0__bubble__["a" /* default */](5, 18, colors[Math.floor(Math.random()*colors.length)], false, {}, "full");
     this.score = 0;

@@ -11,23 +11,22 @@ html {
   flex-flow: column;
   height: 100%;
   position: relative;
-  align-items: center;
 }
 
 .title {
   text-align: center;
   color: white;
+  grid-column-start: 2;
 }
 
 .created {
   text-align: center;
   color: white;
+  grid-column-start: 2;
 }
 
 .canvas {
-  position: relative;
   display: grid;
-  justify-content: center;
   grid-template-columns: 1fr 1fr 1fr;
 }
 
@@ -35,10 +34,18 @@ html {
    display: flex;
    justify-content: space-between;
    flex-flow: row;
-   color: white;
    width: 550px;
    align-self: center;
    font-size: 40px;
+   grid-column-start: 2;
+ }
+
+  .information {
+    grid-column-start: 2;
+  }
+
+ a {
+   color: white;
  }
 
 .rules-title {
@@ -53,7 +60,7 @@ html {
 }
 
 #gameBoard {
-  display: inline-block;
+  margin: 0 auto;
   grid-column-start: 2;
   border-radius: 5px;
 }
